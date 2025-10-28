@@ -4,11 +4,6 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
-  "git": {
-    "deploymentEnabled": {
-      "diana-branch": true
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
