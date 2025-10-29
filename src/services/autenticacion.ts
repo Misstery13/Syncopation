@@ -1,5 +1,11 @@
+import { User, AuthResponse, SaveResponse, GameProgress } from '../types/index.js';
+
 // Simulación de base de datos de usuarios usando localStorage
 class AuthService {
+    private currentUser: User | null;
+    private storageKey: string;
+    private tempSaveKey: string;
+
     constructor() {
         this.currentUser = null;
         this.storageKey = 'syncopation_users';
@@ -7,25 +13,25 @@ class AuthService {
     }
 
     // Inicializar usuarios en localStorage si no existen
-    init() {
+    public init(): void {
         if (!localStorage.getItem(this.storageKey)) {
             localStorage.setItem(this.storageKey, JSON.stringify([]));
         }
     }
 
     // Obtener todos los usuarios
-    getUsers() {
+    private getUsers(): User[] {
         const usersJson = localStorage.getItem(this.storageKey);
         return usersJson ? JSON.parse(usersJson) : [];
     }
 
     // Guardar usuarios
-    saveUsers(users) {
+    private saveUsers(users: User[]): void {
         localStorage.setItem(this.storageKey, JSON.stringify(users));
     }
 
     // Registrar nuevo usuario
-    register(username, password) {
+    public register(username: string, password: string): AuthResponse {
         const users = this.getUsers();
         
         // Verificar si el usuario ya existe
@@ -37,7 +43,7 @@ class AuthService {
         }
 
         // Crear nuevo usuario
-        const newUser = {
+        const newUser: User = {
             username,
             password: this.hashPassword(password), // En producción usar bcrypt
             progress: {
@@ -58,7 +64,7 @@ class AuthService {
     }
 
     // Autenticar usuario
-    login(username, password) {
+    public login(username: string, password: string): AuthResponse {
         const users = this.getUsers();
         const user = users.find(u => u.username === username);
 
@@ -88,7 +94,7 @@ class AuthService {
     }
 
     // Usuario invitado
-    loginAsGuest() {
+    public loginAsGuest(): AuthResponse {
         this.currentUser = {
             username: 'guest',
             isGuest: true
@@ -103,11 +109,11 @@ class AuthService {
     }
 
     // Guardar progreso del juego
-    saveProgress(gameData) {
+    public saveProgress(gameData: GameProgress): SaveResponse {
         if (this.currentUser && !this.currentUser.isGuest) {
             // Guardado permanente para usuarios registrados
             const users = this.getUsers();
-            const userIndex = users.findIndex(u => u.username === this.currentUser.username);
+            const userIndex = users.findIndex(u => u.username === this.currentUser!.username);
             
             if (userIndex !== -1) {
                 users[userIndex].progress = {
@@ -130,14 +136,19 @@ class AuthService {
                 message: 'Progreso guardado temporalmente'
             };
         }
+
+        return {
+            success: false,
+            message: 'Error al guardar progreso'
+        };
     }
 
     // Cargar progreso guardado
-    loadProgress() {
+    public loadProgress(): SaveResponse {
         if (this.currentUser && !this.currentUser.isGuest) {
             // Cargar progreso permanente
             const users = this.getUsers();
-            const user = users.find(u => u.username === this.currentUser.username);
+            const user = users.find(u => u.username === this.currentUser!.username);
             
             if (user && user.progress) {
                 return {
@@ -165,13 +176,13 @@ class AuthService {
     }
 
     // Cerrar sesión
-    logout() {
+    public logout(): void {
         this.currentUser = null;
         sessionStorage.removeItem('currentUser');
     }
 
     // Verificar si hay sesión activa
-    isAuthenticated() {
+    public isAuthenticated(): boolean {
         const username = sessionStorage.getItem('currentUser');
         if (!username) return false;
 
@@ -185,7 +196,7 @@ class AuthService {
     }
 
     // Obtener usuario actual
-    getCurrentUser() {
+    public getCurrentUser(): User | null {
         const username = sessionStorage.getItem('currentUser');
         if (!username) return null;
 
@@ -194,11 +205,11 @@ class AuthService {
         }
 
         const users = this.getUsers();
-        return users.find(u => u.username === username);
+        return users.find(u => u.username === username) || null;
     }
 
     // Hash simple de contraseña (en producción usar bcrypt)
-    hashPassword(password) {
+    private hashPassword(password: string): string {
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
             const char = password.charCodeAt(i);
