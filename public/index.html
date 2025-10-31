@@ -1,12 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <title>Syncopation Game</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/login.css">
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <script src="../dist/main.js"></script>
+    <!-- Pantalla de Login -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>Syncopation Game</h1>
+            <h2>Iniciar Sesión</h2>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    <button type="button" class="btn btn-secondary" id="registerBtn">Crear Cuenta</button>
+                    <button type="button" class="btn btn-guest" id="guestBtn">Jugar como Invitado</button>
+                </div>
+                
+                <div id="loginMessage" class="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla de Registro -->
+    <div id="registerScreen" class="login-container" style="display: none;">
+        <div class="login-box">
+            <h1>Syncopation Game</h1>
+            <h2>Crear Cuenta</h2>
+            
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="regUsername">Usuario</label>
+                    <input type="text" id="regUsername" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="regPassword">Contraseña</label>
+                    <input type="password" id="regPassword" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="regConfirmPassword">Confirmar Contraseña</label>
+                    <input type="password" id="regConfirmPassword" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+                    <button type="button" class="btn btn-secondary" id="backToLoginBtn">Volver</button>
+                </div>
+                
+                <div id="registerMessage" class="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Canvas del Juego -->
+    <canvas id="gameCanvas" style="display: none;"></canvas>
+    <script type="module" src="../src/main.ts"></script>
 </body>
 </html>
