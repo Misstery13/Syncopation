@@ -90,6 +90,3 @@ export class Game {
         this.gameState.level++;
     }
 }
-
-
-//bxhjbaskjdjas
