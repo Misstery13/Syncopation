@@ -114,3 +114,34 @@ export interface CollisionResult {
   direction?: 'top' | 'bottom' | 'left' | 'right';
   overlap?: number;
 }
+
+export type Lane = 0 | 1 | 2 | 3;
+
+export interface NoteEvent {
+  id: number;
+  lane: Lane;
+  timeMs: number;      // cuándo debería ser golpeada
+  hit?: boolean;
+  judged?: boolean;
+}
+
+export interface JudgementWindow {
+  name: 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
+  ms: number;
+  score: number;
+  keepCombo: boolean;
+}
+
+export interface HitResult {
+  noteId: number;
+  deltaMs: number;
+  window: JudgementWindow['name'];
+  score: number;
+}
+
+export interface RhythmState {
+  combo: number;
+  maxCombo: number;
+  score: number;
+  hits: Record<JudgementWindow['name'], number>;
+}

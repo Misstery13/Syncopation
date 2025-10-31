@@ -1,92 +1,90 @@
-import { GameState, GameConfig } from '../types/index.js';
+import { RhythmState, HitResult } from '../types/index.js';
+import { AudioEngine } from '../systems/audio.js';
+import { ChartLoader } from '../systems/chart.js';
+import { Conductor } from '../systems/conductor.js';
+import { InputManager } from './inputManager.js';
+import { Judge } from '../systems/judge.js';
+import { Spawner } from '../systems/spawner.js';
+import { Renderer } from '../systems/renderer.js';
+import { StateManager } from './stateManager.js';
 
-// Clase principal del juego
 export class Game {
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private isRunning: boolean;
-    private gameState: GameState;
-    private config: GameConfig;
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private running = false;
 
-    constructor() {
-        this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-        this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
-        this.isRunning = false;
-        
-        // Configuración inicial del juego
-        this.config = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            backgroundColor: '#000000',
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { x: 0, y: 0 },
-                    debug: false
-                }
-            }
-        };
+  private audio = new AudioEngine();
+  private conductor = new Conductor(this.audio, /*offsetMs=*/0);
+  private state = new StateManager();
 
-        // Estado inicial del juego
-        this.gameState = {
-            isRunning: false,
-            currentScene: 'menu',
-            score: 0,
-            level: 1
-        };
-        
-        // Ajustar tamaño del canvas
-        this.resizeCanvas();
-        window.addEventListener('resize', () => {
-            this.config.width = window.innerWidth;
-            this.config.height = window.innerHeight;
-            this.resizeCanvas();
-        });
+  private chart = ChartLoader.demoChart();
+  private judge = new Judge(this.chart.notes);
+  private spawner = new Spawner(this.chart.notes, 1200);
+  private renderer: Renderer;
+
+  private input: InputManager;
+  private rhythm: RhythmState = { combo: 0, maxCombo: 0, score: 0,
+    hits: { PERFECT:0, GREAT:0, GOOD:0, MISS:0 } };
+
+  constructor() {
+    this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+    this.renderer = new Renderer(this.ctx, 4);
+    this.resizeCanvas();
+    window.addEventListener('resize', () => this.resizeCanvas());
+    this.input = new InputManager(()=>this.conductor.now());
+  }
+
+  private resizeCanvas(){ this.canvas.width = innerWidth; this.canvas.height = innerHeight; }
+
+  public async start() {
+    if (this.running) return;
+    this.running = true;
+
+    // Carga una pista libre de copyright que pongas en public/assets/audio/music/demo.ogg
+    await this.audio.load('/assets/audio/music/demo.ogg');
+    this.conductor.play();
+    this.state.set('playing');
+    this.loop();
+  }
+
+  private handleHit(res: HitResult){
+    if (res.window === 'MISS'){
+      this.rhythm.combo = 0;
+      this.rhythm.hits.MISS++;
+      return;
+    }
+    this.rhythm.score += res.score;
+    this.rhythm.combo++;
+    this.rhythm.maxCombo = Math.max(this.rhythm.maxCombo, this.rhythm.combo);
+    this.rhythm.hits[res.window]++;
+  }
+
+  private loop = () => {
+    if (!this.running) return;
+    const now = this.conductor.now();
+
+    // entradas
+    for (const e of this.input.popEvents()){
+      if (e.down){ const res = this.judge.judgePress(e.lane, e.timeMs); if (res) this.handleHit(res); }
     }
 
-    private resizeCanvas(): void {
-        this.canvas.width = this.config.width;
-        this.canvas.height = this.config.height;
+    // auto misses
+    this.judge.autoMiss(now, (r)=>this.handleHit(r));
+
+    // actualizar notas visibles y dibujar
+    this.spawner.update(now);
+    this.renderer.draw(now, this.spawner.active, this.rhythm.score, this.rhythm.combo);
+
+    // fin de canción
+    if (now > this.conductor.durationMs() + 1000){
+      this.running = false;
+      this.state.set('results');
+      console.log('Resultados:', this.rhythm);
+      // Aquí puedes mostrar una pantalla de resultados
+      return;
     }
 
-    public start(): void {
-        if (this.isRunning) return;
-        
-        this.isRunning = true;
-        this.gameState.isRunning = true;
-        console.log('🎮 Juego iniciado');
-        
-        // Aquí puedes agregar tu lógica del juego
-        this.gameLoop();
-    }
-
-    private gameLoop(): void {
-        if (!this.isRunning) return;
-
-        // Limpiar canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Tu lógica de juego aquí
-
-        // Continuar el loop
-        requestAnimationFrame(() => this.gameLoop());
-    }
-
-    public stop(): void {
-        this.isRunning = false;
-        this.gameState.isRunning = false;
-        console.log('⏸ Juego detenido');
-    }
-
-    public getState(): GameState {
-        return { ...this.gameState };
-    }
-
-    public updateScore(points: number): void {
-        this.gameState.score += points;
-    }
-
-    public nextLevel(): void {
-        this.gameState.level++;
-    }
+    requestAnimationFrame(this.loop);
+  }
 }
