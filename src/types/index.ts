@@ -13,23 +13,13 @@ export interface GameConfig {
   };
 }
 
-export interface PlayerConfig {
-  x: number;
-  y: number;
-  speed: number;
-  health: number;
-  maxHealth: number;
-}
-
-export interface GameState {
-  isRunning: boolean;
-  currentScene: string;
-  score: number;
-  level: number;
-  playerPosition?: { x: number; y: number };
-  inventory?: any[];
-  settings?: any;
-}
+// export interface PlayerConfig {
+//   x: number;
+//   y: number;
+//   speed: number;
+//   health: number;
+//   maxHealth: number;
+// }
 
 export interface InputState {
   keys: { [key: string]: boolean };
@@ -114,3 +104,50 @@ export interface CollisionResult {
   direction?: 'top' | 'bottom' | 'left' | 'right';
   overlap?: number;
 }
+
+/**
+ * @description Es el momento exacto en que una nota debe ser golpeada
+ * 
+ * @property {number} id - Identificador único de la nota
+ * @property {number} timeMs - El momento exacto en que la nota debe ser presionada, en milisegundos
+ * @property {'delay' | 'hit' | 'miss'} state - El estado actual de la nota, puede ser 'delay' (pendiente), 'hit' (golpeada) o 'miss' (fallada)
+ */
+
+export interface Tempo {
+  readonly id: number;
+  // El momento exacto en que la nota debe ser presionada
+  readonly timeMs: number;
+  // Ya no existe 'carril: number'
+  readonly state: 'pendiente' | 'golpeada' | 'fallada';
+}
+
+export interface GameState {
+  readonly score: number;
+  readonly precision: number;
+  readonly currentTimeMs: number; // El tiempo actual de la canción
+  readonly currentScene: string;
+  readonly isRunning: boolean;
+  readonly isPaused: boolean;
+  readonly isGameStoped: boolean;
+  readonly level: number;
+  readonly song: SongDefinition;
+
+}
+
+
+/**
+ * Define la canción, su dificultad y las notas que la componen
+ * 
+ * @property {string} idCancion - Identificador único de la canción
+ * @property {'facil' | 'normal' | 'dificil'} dificultad - Dificultad de la canción
+ * @property {readonly Nota[]} notas - Array de notas que componen la canción
+ */
+export interface SongDefinition {
+
+  readonly idSong: string;
+
+  readonly difficulty: 'easy' | 'normal' | 'hard';
+
+  readonly tempos: readonly Tempo[];
+
+} 
