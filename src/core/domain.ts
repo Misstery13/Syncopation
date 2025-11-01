@@ -1,4 +1,4 @@
-import { GameState } from '../types/index.js';
+import { GameState, SongDefinition } from '../types/index.js';
 
 /**
  * Aquí vivirán todas las funciones puras necesarias para el manejo del estado del juego.
@@ -63,9 +63,90 @@ export function setLevelUp(currentState: GameState): GameState {
  * @param currentState 
  * @returns 
  */
-export function getPoints(currentState: GameState): GameState {
+export function addPoint(currentState: GameState): GameState {
+    // Reutilizamos addScore para mantener la lógica de no-negatividad.
+    return addScore(currentState, 1);
+}
+
+/**
+ * Establece la puntuación absoluta del juego (pura).
+ * @param currentState Estado actual inmutable
+ * @param score Nueva puntuación a fijar
+ */
+export function setScore(currentState: GameState, score: number): GameState {
     return {
         ...currentState,
-        score: currentState.score + 1 // Incrementamos los puntos en 1.
+        score: Math.max(0, Number.isFinite(score) ? score : currentState.score)
     };
 }
+
+/**
+ * Añade (o resta) puntos a la puntuación actual de forma pura.
+ * @param currentState Estado actual inmutable
+ * @param delta Valor a sumar (puede ser negativo)
+ */
+export function addScore(currentState: GameState, delta: number): GameState {
+    const current = Number.isFinite(currentState.score) ? currentState.score : 0;
+    const add = Number.isFinite(delta) ? delta : 0;
+    const next = Math.max(0, current + add);
+    return {
+        ...currentState,
+        score: next
+    };
+}
+
+/**
+ * Ajusta la precisión (precision) del estado de forma pura.
+ * Se asegura que la precision esté entre 0 y 100.
+ */
+export function setPrecision(currentState: GameState, precision: number): GameState {
+    const p = Number.isFinite(precision) ? precision : currentState.precision;
+    const clamped = Math.max(0, Math.min(100, p));
+    return {
+        ...currentState,
+        precision: clamped
+    };
+}
+
+/**
+ * Establece el tiempo actual de la canción en milisegundos (puro).
+ */
+export function setCurrentTimeMs(currentState: GameState, timeMs: number): GameState {
+    const t = Number.isFinite(timeMs) ? timeMs : currentState.currentTimeMs;
+    return {
+        ...currentState,
+        currentTimeMs: Math.max(0, t)
+    };
+}
+
+/**
+ * Cambia la escena actual de forma pura.
+ */
+export function setCurrentScene(currentState: GameState, scene: string): GameState {
+    return {
+        ...currentState,
+        currentScene: String(scene ?? currentState.currentScene)
+    };
+}
+
+/**
+ * Establece la canción (SongDefinition) en el estado de forma pura.
+ */
+export function setSong(currentState: GameState, song: SongDefinition): GameState {
+    return {
+        ...currentState,
+        song
+    };
+}
+
+/**
+ * Reanuda el juego (quita la pausa) de forma pura.
+ */
+export function resumeGame(currentState: GameState): GameState {
+    return {
+        ...currentState,
+        isPaused: false,
+        isRunning: true
+    };
+}
+

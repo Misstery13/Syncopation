@@ -118,7 +118,7 @@ export interface Tempo {
   // El momento exacto en que la nota debe ser presionada
   readonly timeMs: number;
   // Ya no existe 'carril: number'
-  readonly state: 'pendiente' | 'golpeada' | 'fallada';
+  readonly judgementWindow: JudgementWindow['name']; // Ventana de juicio asociada a esta nota
 }
 
 export interface GameState {
@@ -150,4 +150,28 @@ export interface SongDefinition {
 
   readonly tempos: readonly Tempo[];
 
-} 
+}
+
+export interface JudgementWindow {
+  name: 'delay' | 'hit' | 'miss';
+  ms: number; // Tiempo en milisegundos para este juicio
+  score: number; // Puntos otorgados por este juicio
+  keepCombo: boolean; // Si este juicio mantiene el combo
+}
+
+export interface HitResult {
+  noteId: number;
+  deltaMs: number;
+  window: JudgementWindow['name'];
+  score: number;
+}
+
+/**
+ * @description Estado del sistema rítmico del juego.
+ */
+export interface RhythmState {
+  combo: number;
+  maxCombo: number;
+  score: number;
+  hits: Record<JudgementWindow['name'], number>;
+}
