@@ -10,12 +10,11 @@ class SaveService {
 
     // Guardar progreso del juego
     public save(gameState: GameState): SaveResponse {
+        const s = gameState as any;
         const progress: GameProgress = {
             level: gameState.level,
             score: gameState.score,
-            playerPosition: gameState.playerPosition,
-            inventory: gameState.inventory,
-            settings: gameState.settings,
+
             lastSaved: new Date().toISOString()
         };
 

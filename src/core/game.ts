@@ -1,5 +1,5 @@
 import { GameState, GameConfig } from '../types/index.js';
-import { setGameStart, setGameStoped, setLevelUp, getPoints } from './domain.js';
+import { setGameStart, setGameStoped, setLevelUp, addPoint } from './domain.js';
 
 // Clase principal del juego
 
@@ -119,11 +119,11 @@ export class Game {
     }
 
     public updateScore(): void {
-        this.gameState = getPoints(this.gameState); //implementar getPoints en domain.ts
+        this.gameState = addPoint(this.gameState);
         console.log(`El jugador ha obtenido un punto. Total: ${this.gameState.score}`);
 
         // 1. Llamada a la Función Pura del Núcleo para obtener el NUEVO estado
-        this.gameState = getPoints(this.gameState);
+        this.gameState = addPoint(this.gameState);
 
         // No hay efectos secundarios específicos, solo la actualización de la referencia.
         console.log(`Nivel avanzado a: ${this.gameState.level}`);
