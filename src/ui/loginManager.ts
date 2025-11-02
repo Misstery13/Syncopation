@@ -1,5 +1,5 @@
-import AuthService from '../services/autenticacion.ts';
-import { AuthResponse } from '../types/index.ts';
+import AuthService from '../services/autenticacion';
+import { AuthResponse } from '../types/index';
 
 class LoginManager {
     private authService: AuthService;

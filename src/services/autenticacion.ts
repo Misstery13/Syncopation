@@ -1,4 +1,4 @@
-import { User, AuthResponse, SaveResponse, GameProgress } from '../types/index.js';
+import { User, AuthResponse, SaveResponse, GameProgress } from '../types/index';
 
 // Simulación de base de datos de usuarios usando localStorage
 class AuthService {
