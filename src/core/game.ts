@@ -1,5 +1,5 @@
 import { GameState, GameConfig } from '../types/index.js';
-import { setGameStart, setGameStoped, setLevelUp, addPoint } from './domain.js';
+import { setGameStart, setGameStoped, setLevelUp, addPoint } from './domain.ts';
 
 // Clase principal del juego
 
