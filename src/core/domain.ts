@@ -1,4 +1,4 @@
-import { GameState, SongDefinition } from '../types/index.js';
+import { GameState, SongDefinition } from '../types/index';
 
 /**
  * Aquí vivirán todas las funciones puras necesarias para el manejo del estado del juego.

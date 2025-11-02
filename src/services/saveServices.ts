@@ -1,5 +1,5 @@
-import AuthService from './autenticacion.ts';
-import { GameState, SaveResponse, GameProgress } from '../types/index.ts';
+import AuthService from './autenticacion';
+import { GameState, SaveResponse, GameProgress } from '../types/index';
 
 class SaveService {
     private authService: AuthService;
@@ -10,7 +10,7 @@ class SaveService {
 
     // Guardar progreso del juego
     public save(gameState: GameState): SaveResponse {
-        const s = gameState as any;
+        //const s = gameState as any;
         const progress: GameProgress = {
             level: gameState.level,
             score: gameState.score,

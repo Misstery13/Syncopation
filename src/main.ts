@@ -1,5 +1,5 @@
-import { Game } from './core/game.ts';
-import LoginManager from './ui/loginManager.ts';
+import { Game } from './core/game';
+import LoginManager from './ui/loginManager';
 
 // Inicializar el sistema de login
 const loginManager: LoginManager = new LoginManager();
