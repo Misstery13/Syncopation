@@ -149,4 +149,3 @@ export function resumeGame(currentState: GameState): GameState {
         isRunning: true
     };
 }
-
