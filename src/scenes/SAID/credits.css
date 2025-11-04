@@ -1,0 +1,66 @@
+:root{
+  --bg: rgba(10,10,14,0.92);
+  --card: rgba(255,255,255,0.08);
+  --txt: #f8fafc;
+  --acc: #38bdf8;
+}
+
+#credits-overlay {
+  position: fixed; inset: 0;
+  display: none; /* se muestra con .is-open */
+  z-index: 9999;
+  background: var(--bg);
+  backdrop-filter: blur(4px);
+  color: var(--txt);
+  font-family: 'Press Start 2P', system-ui, sans-serif;
+}
+
+#credits-overlay.is-open { display: grid; }
+
+.credits-wrap {
+  margin: auto;
+  width: min(920px, 90vw);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 2rem;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.credits-header {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:1rem; margin-bottom:1rem;
+}
+.credits-title { font-size: 1.25rem; letter-spacing: 1px; }
+.credits-actions { display:flex; gap:.5rem; }
+
+.credits-btn {
+  border: 1px solid var(--acc);
+  background: transparent;
+  color: var(--txt);
+  padding: .5rem .9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: .8rem;
+}
+.credits-btn:hover { background: rgba(56,189,248,.12); }
+
+.credits-search {
+  width: 100%;
+  margin: .4rem 0 1rem;
+  padding: .6rem .8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(0,0,0,.25);
+  color: var(--txt);
+  font-size: .8rem;
+}
+
+.credits-section { margin: 1rem 0; }
+.credits-role { color: var(--acc); margin-bottom:.25rem; font-size:.9rem; }
+.credits-names { margin: 0; opacity:.95; line-height: 1.6; font-size:.8rem; }
+
+/* animación de “scroll lento” opcional para estilo créditos */
+@keyframes slowScroll { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.credits-section { animation: slowScroll .4s ease both; }
