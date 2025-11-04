@@ -21,3 +21,6 @@ npm-debug.log*
 # Variables de entorno
 .env
 .env.local
+
+
+node_modules/
