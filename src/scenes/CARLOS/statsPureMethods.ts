@@ -1,11 +1,21 @@
-//PANTALLA DE CARLOS DEL JUEGO 
+// Estos métodos son funciones puras relacionadas con las estadísticas del jugador.
+
+
+
+// La ubicación del archivo será modificada más adelante para ajustarse a la estructura del proyecto.
+
+
 
 /**
  * Aquí va el codigo con las funciones puras relacionadas con la pantalla de Estadísticas.
  * A la cual se accede desde el menú principal, en la opcion "Estadísticas".
  */
 
-import { PlayerStats, GameState } from '../../types/index';
+import { GameState } from '../../types/index';
+import { PlayerStats } from './statsTypes';
+
+
+
 
 /**
  * Inicializa las estadísticas globales del jugador.
