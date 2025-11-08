@@ -1,9 +1,8 @@
 // Luego se creará una carpeta para controladores específicos para este archivo.
 
 // src/CARLOS/statsController.ts
-import { initPlayerStats } from './statsPureMethods.ts';
-import { PlayerStats } from './statsTypes.ts';
-import './statsScreen.css';
+import { initPlayerStats } from './statsPureMethods';
+import { PlayerStats } from './statsTypes';
 
 // Clave de almacenamiento (puede venir del estado global del juego)
 const STORAGE_KEY = 'playerStats';

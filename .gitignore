@@ -5,6 +5,7 @@ package-lock.json
 # Archivos de build
 dist/
 build/
+src/scenes/CARLOS/build/
 
 # Editor
 .vscode/

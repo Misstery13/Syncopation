@@ -1,70 +1,220 @@
-/* Debería ir en: src/ui/StatsScreen/statsScreen.css */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+
+
+
+/* === CONFIGURACIÓN GENERAL === */
 body {
-    outline: 5px solid limegreen !important;
-}
-
-.stats-container {
-    background: #1a1a2e;
-    border: 2px solid #ff6b6b;
-    border-radius: 15px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 600px;
-    margin: 4rem auto;
-    color: white;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #333;
-    padding-bottom: 1rem;
-    margin-bottom: 2rem;
-}
-
-.header h2 {
     margin: 0;
-    color: #ff6b6b;
+    padding: 0;
+    font-family: 'Press Start 2P', cursive;
+    /* background: linear-gradient(#78c7f2, #5dc0de); */
+    background: linear-gradient(#fefe46, #5dc0de);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #fff;
+    position: relative;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
+/* === FONDO: TIERRA Y PASTO === */
+body::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: white;
+    box-shadow: inset 0 1px black;
 }
 
-.stat-item {
-    background: #16213e;
-    border-radius: 10px;
-    padding: 1rem;
+/*
+body::after {
+    content: "";
+    position: absolute;
+    bottom: 100px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: #4caf50;
+} */
+
+/* === CONTENEDORES GENERALES === */
+.menu-container,
+.form-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    z-index: 10;
+    transition: opacity 0.3s ease;
 }
 
-.stat-item span {
-    color: #aaa;
-    display: block;
-    font-size: 0.9rem;
+.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
-.stat-item strong {
-    color: #feca57;
-    font-size: 1.4rem;
-    margin-top: 0.5rem;
-    display: block;
+/* === TÍTULO DEL JUEGO === */
+.game-title {
+    font-size: 24px;
+    color: #ffcc00;
+    text-shadow: 3px 3px 0 #000;
+    margin-bottom: 50px;
 }
 
-.back-btn {
-    background: #333;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
+/* === MENÚ PRINCIPAL === */
+.menu-options {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+}
+
+.menu-option {
+    font-size: 12px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+    position: relative;
+    padding-left: 30px;
     cursor: pointer;
-    transition: background 0.3s ease;
+    opacity: 1;
+    transition: transform 0.15s, opacity 0.3s;
 }
 
-.back-btn:hover {
-    background: #555;
+.menu-option::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 10px solid transparent;
+    transition: border-right-color 0.1s;
+}
+
+/* Flecha y efecto de selección */
+.menu-option.selected::before {
+    border-right-color: #ffcc00;
+}
+
+.menu-option.selected {
+    color: #ffcc00;
+    transform: translateX(5px);
+}
+
+/* Desaparición con animación */
+.menu-option.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+/* === FORMULARIOS ESTILO RETRO === */
+.form-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.form-container h2 {
+    font-size: 14px;
+    color: #ffcc00;
+    text-shadow: 2px 2px 0 #000;
+    margin-bottom: 25px;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* === INPUTS === */
+.form-container input {
+    width: 240px;
+    padding: 10px;
+    background: none;
+    color: #fff;
+    border: 3px solid #000;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    box-shadow: 2px 2px 0 #000;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-container input:focus {
+    border-color: #ffaa00;
+}
+
+/* === BOTONES === */
+#btnBack,
+#btnBack {
+    position: absolute;
+    bottom: 40px;
+    /* distancia desde la parte inferior */
+    left: 70%;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    width: 260px;
+    padding: 10px 0;
+    color: #000;
+    border: 3px solid #000;
+    box-shadow: 3px 3px 0 #000;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: 0.1s ease-in-out;
+}
+
+#btnBack {
+    background: #ffcc00;
+}
+
+#btnBack:hover {
+    background: #ffaa00;
+    transform: translateY(-2px);
+}
+
+#btnBack {
+    background: #ccc;
+}
+
+#btnBack:hover {
+    background: #aaa;
+    transform: translateY(-2px);
+}
+
+/* === MENSAJES === */
+.message {
+    font-size: 10px;
+    margin-top: 10px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
 }

@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "rootDir": "./",
+        "outDir": "./build",
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true
+    },
+    "include": [
+        "./*.ts"
+    ]
+}

@@ -4,25 +4,24 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pantalla de Estadísticas - Test</title>
-    <link rel="stylesheet" href="/src/scenes/CARLOS/statsScreen.css">
-    <style>
-        body {
-            background: #0f0f1a;
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+    <title>Pantalla de Estadísticas</title>
+    <link rel="stylesheet" href="../../src/scenes/CARLOS/statsScreen3Animated.css" />
 </head>
 
-<body>
+<body style="background-color: black; color: white; margin: 0;">
+
+    <!-- Contenedor donde se inyectará la vista -->
     <div id="app-root"></div>
 
+    <!-- <button id="btnBack">Vo</button> -->
+    <!-- Importa el script compilado -->
     <script type="module">
-        import { initStatsScreen } from "/src/scenes/CARLOS/statsController.js";
-        initStatsScreen();
+        import { initStatsScreen } from "/../src/scenes/CARLOS/build/statsController.js";
+        window.addEventListener("DOMContentLoaded", () => {
+            initStatsScreen();
+        });
     </script>
+
 </body>
 
 </html>
