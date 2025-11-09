@@ -36,11 +36,6 @@ type MainMenuCallbacks = {
 function createSceneMenuItems(): MenuItemData[] {
   return [
     {
-      id: 'start-game',
-      label: 'Juego Base',
-      description: 'Inicia el núcleo jugable para practicar tus habilidades rítmicas.',
-    },
-    {
       id: 'angel-levels',
       label: 'Selección de Niveles (Ángel)',
       description: 'Explora los niveles creados por Ángel y elige una canción para jugar.',
@@ -49,16 +44,6 @@ function createSceneMenuItems(): MenuItemData[] {
       id: 'carlos-stats',
       label: 'Estadísticas del Jugador (Carlos)',
       description: 'Consulta tu progreso, puntajes y logros recopilados por Carlos.',
-    },
-    {
-      id: 'diana-screen',
-      label: 'Zona Creativa (Diana)',
-      description: 'Descubre la propuesta visual y narrativa pensada por Diana.',
-    },
-    {
-      id: 'paulo-screen',
-      label: 'Laboratorio Sonoro (Paulo)',
-      description: 'Accede a la experimentación sonora diseñada por Paulo.',
     },
     {
       id: 'said-credits',
