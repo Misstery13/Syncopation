@@ -2,9 +2,6 @@ import { Game } from './core/game';
 import LoginManager from './ui/loginManager';
 import { MainMenuManager } from './scenes/DIANA/mainMenuManager';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Modal } from 'bootstrap';
-
 let loginManager: LoginManager;
 const mainMenu = new MainMenuManager({
   onLogout: () => {
@@ -25,39 +22,46 @@ window.addEventListener('startGame', () => {
   game.start();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveConfigBtn")!;
-  const volume = document.getElementById("volumeRange") as HTMLInputElement;
-  const difficulty = document.getElementById("difficultySelect") as HTMLSelectElement;
-  const fullscreen = document.getElementById("fullscreenToggle") as HTMLInputElement;
+document.addEventListener('DOMContentLoaded', () => {
+  const modalEl = document.getElementById('configModal');
+  const saveBtn = document.getElementById('saveConfigBtn') as HTMLButtonElement | null;
+  const volume = document.getElementById('volumeRange') as HTMLInputElement | null;
+  const difficulty = document.getElementById('difficultySelect') as HTMLSelectElement | null;
+  const fullscreen = document.getElementById('fullscreenToggle') as HTMLInputElement | null;
 
-  // Cargar configuración guardada
-  const saved = localStorage.getItem("gameSettings");
+  if (!modalEl || !saveBtn || !volume || !difficulty || !fullscreen) return;
+
+  const bootstrapGlobal = (window as any).bootstrap;
+  const modal = bootstrapGlobal?.Modal?.getOrCreateInstance(modalEl);
+  if (!modal) return;
+
+  const saved = localStorage.getItem('gameSettings');
   if (saved) {
-    const s = JSON.parse(saved);
-    volume.value = s.volume;
-    difficulty.value = s.difficulty;
-    fullscreen.checked = s.fullscreen;
+    const persisted = JSON.parse(saved);
+    if (typeof persisted.volume === 'number') {
+      volume.value = String(persisted.volume);
+    }
+    if (typeof persisted.difficulty === 'string') {
+      difficulty.value = persisted.difficulty;
+    }
+    if (typeof persisted.fullscreen === 'boolean') {
+      fullscreen.checked = persisted.fullscreen;
+    }
   }
 
-  // Guardar configuración
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener('click', () => {
     const settings = {
-      volume: parseInt(volume.value),
+      volume: Number.parseInt(volume.value, 10),
       difficulty: difficulty.value,
       fullscreen: fullscreen.checked,
     };
 
-    localStorage.setItem("gameSettings", JSON.stringify(settings));
+    localStorage.setItem('gameSettings', JSON.stringify(settings));
 
-    // Aplicar al juego si está cargado
     if ((window as any).game?.sound) {
       (window as any).game.sound.volume = settings.volume / 100;
     }
 
-    // Cerrar modal usando Bootstrap API
-    const modalEl = document.getElementById('configModal')!;
-    const modal = Modal.getInstance(modalEl);
-    modal?.hide();
+    modal.hide();
   });
 });
