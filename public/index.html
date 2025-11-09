@@ -32,7 +32,7 @@
             
             
             <button type="submit" class="btn btn-primary">Entrar</button>
-            <button type="button" class="btn btn-secondary" id="backtoMenuBtn">Volver</button>
+            <button type="button" class="btn btn-secondary" id="backToMenuBtn">Volver</button>
                             
             <div id="loginMessage" class="message"></div>
         </form>
@@ -47,10 +47,26 @@
             <input type="password" id="regConfirmPassword" placeholder="Confirmar Contraseña" required>
             
             <button type="submit" class="btn btn-primary">Registrar</button>
-            <button type="button" class="btn btn-secondary" id="backToLoginBtn">Volver</button>
+            <button type="button" class="btn btn-secondary" id="backToMenuBtn2">Volver</button>
                             
             <div id="registerMessage" class="message"></div>
         </form>
+    </div>
+
+    <!-- Pantalla de menú principal -->
+    <div id="mainMenuScreen" class="menu-container hidden" style="display: none;">
+        <div class="main-menu-wrapper">
+            <div class="main-menu-panel">
+                <h1 class="game-title">Syncopation Hub</h1>
+                <p id="mainMenuSubtitle" class="menu-subtitle"></p>
+                <ul id="mainMenuOptions" class="menu-options"></ul>
+                <p id="mainMenuDescription" class="menu-description"></p>
+                <div class="menu-actions">
+                    <button type="button" class="btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+                </div>
+            </div>
+            <div id="app-root" class="main-menu-content" aria-live="polite"></div>
+        </div>
     </div>
     <!-- Modal de configuracion -->
   <div

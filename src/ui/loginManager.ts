@@ -1,14 +1,22 @@
 import AuthService from '../services/autenticacion';
-import { AuthResponse } from '../types/index';
+import { AuthResponse, User } from '../types/index';
+
+type AuthMode = 'login' | 'register' | 'guest';
+
+type LoginCallbacks = {
+    onAuthSuccess?: (payload: { mode: AuthMode; user?: User | null }) => void;
+};
 
 class LoginManager {
     private authService: AuthService;
+    private callbacks: LoginCallbacks;
     
     // Pantallas
     private menuScreen!: HTMLElement;
     private loginScreen!: HTMLElement;
     private registerScreen!: HTMLElement;
     private gameCanvas!: HTMLElement;
+    private mainMenuScreen?: HTMLElement;
 
     // Formularios
     private loginForm!: HTMLFormElement;
@@ -29,10 +37,11 @@ class LoginManager {
     private selectedIndex: number = 0; // la flecha seleccionada
     private currentFormInputs: HTMLInputElement[] = []; // Los cuadros del texto activos
     private inputIndex: number = 0; //El cuadro del texto seleccionado
-    private currentScreen: 'menu' | 'login' | 'register' | 'game' = 'menu'; // La pantalla actual
+    private currentScreen: 'menu' | 'login' | 'register' | 'mainMenu' | 'game' = 'menu'; // La pantalla actual
 
-    constructor() {
+    constructor(callbacks?: LoginCallbacks) {
         this.authService = new AuthService();
+        this.callbacks = callbacks ?? {};
         this.initElements();
         this.initEventListeners();
 
@@ -48,6 +57,7 @@ class LoginManager {
         this.loginScreen = document.getElementById('loginScreen') as HTMLElement;
         this.registerScreen = document.getElementById('registerScreen') as HTMLElement;
         this.gameCanvas = document.getElementById('gameCanvas') as HTMLElement;
+        this.mainMenuScreen = document.getElementById('mainMenuScreen') ?? undefined;
 
         // Formularios
         this.loginForm = document.getElementById('loginForm') as HTMLFormElement;
@@ -58,14 +68,21 @@ class LoginManager {
         this.registerMessage = document.getElementById('registerMessage') as HTMLElement;
 
         // Botones
-        this.backToMenuBtn = document.getElementById('backToMenuBtn')!;
-        this.backToMenuBtn2 = document.getElementById('backToMenuBtn2')!;        
+        const backBtnCandidate = document.getElementById('backToMenuBtn') ?? document.getElementById('backtoMenuBtn');
+        const backBtnCandidate2 = document.getElementById('backToMenuBtn2') ?? document.getElementById('backToLoginBtn');
+
+        if (!backBtnCandidate || !backBtnCandidate2) {
+            throw new Error('[LoginManager] Botones de regreso no encontrados');
+        }
+
+        this.backToMenuBtn = backBtnCandidate;
+        this.backToMenuBtn2 = backBtnCandidate2;
         //this.registerBtn = document.getElementById('registerBtn') as HTMLElement;
         //this.guestBtn = document.getElementById('guestBtn') as HTMLElement;
         //this.backToLoginBtn = document.getElementById('backToLoginBtn') as HTMLElement;
 
         // La lista de de opciones
-        this.menuOptions = document.querySelectorAll('.menu-option');
+        this.menuOptions = this.menuScreen.querySelectorAll('.menu-option');
     }
 
     private initEventListeners(): void {
@@ -182,7 +199,7 @@ class LoginManager {
 
         if (result.success) {
             setTimeout(() => {
-                this.startGame();
+                this.notifyAuthSuccess('login', result.user ?? null);
             }, 1000);
         }
     }
@@ -208,9 +225,16 @@ class LoginManager {
 
         if (result.success) {
             setTimeout(() => {
-                this.showLogin();
-                (document.getElementById('username') as HTMLInputElement).value = username;
-            }, 1500);
+                const autoLogin = this.authService.login(username, password);
+                const userData = autoLogin.success ? autoLogin.user ?? null : null;
+                this.showMessage(this.registerMessage, autoLogin.message, autoLogin.success);
+                if (autoLogin.success) {
+                    this.notifyAuthSuccess('register', userData);
+                } else {
+                    this.showLogin();
+                    (document.getElementById('username') as HTMLInputElement).value = username;
+                }
+            }, 1200);
         }
     }
 
@@ -218,17 +242,19 @@ class LoginManager {
         const result: AuthResponse = this.authService.loginAsGuest();
         
         if (result.success) {
-            this.startGame();
+            this.notifyAuthSuccess('guest', result.user ?? null);
         }
     }
 
     // == Pantallas ==
-    private showMenu(): void {
+    public showMenu(): void {
         this.hideAll();
+        this.selectedIndex = 0;
         this.menuScreen.style.display = 'flex';
         this.menuOptions.forEach(opt => opt.classList.remove('fade-out'));
         this.currentScreen = 'menu';
-        this.menuOptions[this.selectedIndex].classList.add('selected');
+        this.menuOptions.forEach(opt => opt.classList.remove('selected'));
+        this.menuOptions[this.selectedIndex]?.classList.add('selected');
     }
     private showLogin(): void {
         this.hideAll();
@@ -249,28 +275,27 @@ class LoginManager {
         this.currentFormInputs[0]?.focus();
     }
 
-    private startGame(): void {
-        // Ocultar pantalla de login
+    public resetToLogin(): void {
         this.hideAll();
-        
-        // Mostrar canvas del juego
-        this.gameCanvas.style.display = 'block';
-
-        //Actualizar la pantalla actual a game
-        this.currentScreen = 'game';
-        // Iniciar el juego (esto se dispararía automáticamente cuando se cargue el script)
-        (window as any).loginComplete = true;
-        this.triggerGameStart();
+        this.selectedIndex = 0;
+        this.menuOptions.forEach(opt => opt.classList.remove('fade-out', 'selected'));
+        this.menuOptions[this.selectedIndex]?.classList.add('selected');
+        this.currentScreen = 'menu';
+        this.menuScreen.style.display = 'flex';
+        this.gameCanvas.style.display = 'none';
     }
 
     private hideAll(): void {
-        [this.menuScreen, this.loginScreen, this.registerScreen, this.gameCanvas]
+        const screens: (HTMLElement | undefined)[] = [
+            this.menuScreen,
+            this.loginScreen,
+            this.registerScreen,
+            this.gameCanvas,
+            this.mainMenuScreen
+        ];
+        screens
+            .filter((el): el is HTMLElement => Boolean(el))
             .forEach(el => el.style.display = 'none');
-    }
-
-    private triggerGameStart(): void {
-        // Disparar evento personalizado para que el juego se inicie
-        window.dispatchEvent(new CustomEvent('startGame'));
     }
 
     private showMessage(element: HTMLElement, message: string, isSuccess: boolean): void {
@@ -282,6 +307,12 @@ class LoginManager {
     public init(): void {
         this.authService.init();
         this.showMenu();
+    }
+
+    private notifyAuthSuccess(mode: AuthMode, user: User | null): void {
+        this.hideAll();
+        this.currentScreen = 'mainMenu';
+        this.callbacks.onAuthSuccess?.({ mode, user });
     }
 }
 

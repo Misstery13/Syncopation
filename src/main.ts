@@ -1,19 +1,28 @@
 import { Game } from './core/game';
 import LoginManager from './ui/loginManager';
+import { MainMenuManager } from './scenes/DIANA/mainMenuManager';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Modal } from 'bootstrap';
 
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal } from "bootstrap";
+let loginManager: LoginManager;
+const mainMenu = new MainMenuManager({
+  onLogout: () => {
+    loginManager.resetToLogin();
+  },
+});
 
-// Inicializar el sistema de login
-const loginManager: LoginManager = new LoginManager();
+loginManager = new LoginManager({
+  onAuthSuccess: (payload) => {
+    mainMenu.show(payload);
+  },
+});
+
 loginManager.init();
 
-// Esperar a que se complete el login antes de iniciar el juego
 window.addEventListener('startGame', () => {
-    // Inicializar el juego
-    const game: Game = new Game();
-    game.start();
+  const game: Game = new Game();
+  game.start();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
