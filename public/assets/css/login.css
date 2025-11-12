@@ -228,6 +228,7 @@ body::after {
 }
 
  /* === MENÚ PRINCIPAL EXTENDIDO === */
+ 
 .main-menu-wrapper {
   width: 90%;
   max-width: 960px;
@@ -336,3 +337,5 @@ body::after {
 .main-menu-placeholder .btn-secondary {
   width: 220px;
 }
+
+ 
