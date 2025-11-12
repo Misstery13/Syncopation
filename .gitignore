@@ -1,10 +1,6 @@
 # Dependencias
-node_modules/
-package-lock.json
 
 # Archivos de build
-dist/
-build/
 src/scenes/CARLOS/build/
 
 # Editor
@@ -23,5 +19,3 @@ npm-debug.log*
 .env
 .env.local
 
-
-node_modules/
