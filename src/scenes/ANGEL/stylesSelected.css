@@ -1,167 +1,312 @@
-/* El overlay principal que cubre el canvas */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* === RESET Y ESTILOS BASE === */
+.level-selection-overlay * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === OVERLAY PRINCIPAL === */
 .level-selection-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85); /* Fondo oscuro semitransparente */
-  color: white;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(#78c7f2, #5dc0de);
+  font-family: 'Press Start 2P', cursive;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-family: Arial, sans-serif;
-  z-index: 10; /* Asegura que esté sobre el canvas */
+  justify-content: center;
+  color: #fff;
+  z-index: 10000;
+  overflow: hidden;
 }
 
-/* Contenedor principal del contenido */
+/* Capa de tierra y pasto al fondo */
+.level-selection-overlay::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  background: #613f15;
+  box-shadow: inset 0 10px #7a4f1a;
+  z-index: 1;
+}
+
+.level-selection-overlay::after {
+  content: "";
+  position: absolute;
+  bottom: 100px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background: #4caf50;
+  z-index: 2;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
 .level-selection-content {
-  display: flex;
+  position: relative;
+  z-index: 10;
   width: 90%;
   max-width: 900px;
   height: 70vh;
-  background-color: #1a1a1a;
-  border-radius: 8px;
-  border: 1px solid #444;
+  min-height: 500px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
 }
 
-/* --- Contenedor de la Lista (Izquierda) --- */
+/* === PANEL IZQUIERDO (LISTA DE NIVELES) === */
 .level-list-container {
   width: 40%;
   padding: 20px;
+  border-right: 4px solid #000;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #444;
+  align-items: center;
+  background: rgba(0,0,0,0.25);
+  gap: 15px;
 }
 
 .level-list-container h2 {
-  margin-top: 0;
+  font-size: 12px;
+  color: #ffcc00;
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 10px;
   text-align: center;
-  color: #f0e68c; /* Amarillo */
 }
 
 .level-list {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
   margin: 0;
-  flex-grow: 1; /* Ocupa el espacio disponible */
-  overflow-y: auto; /* Scroll si hay muchos niveles */
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
+/* === ITEM DE NIVEL === */
 .level-item {
-  padding: 12px 15px;
-  margin-bottom: 8px;
-  border: 1px solid #555;
-  border-radius: 4px;
+  font-size: 10px;
+  color: #000;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+  background: #ffcc00;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 12px 8px;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  text-align: center;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+  width: 100%;
 }
 
 .level-item:hover {
-  background-color: #333;
+  background: #ffaa00;
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 #000;
 }
 
-/* Nivel seleccionado */
 .level-item.selected {
-  background-color: #f0e68c;
-  color: #1a1a1a;
-  border-color: #f0e68c;
-  font-weight: bold;
+  background: #ffaa00;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 #000;
 }
 
-/* Nivel bloqueado */
 .level-item.locked {
-  background-color: #2a2a2a;
-  color: #777;
+  background: #666;
+  color: #333;
   cursor: not-allowed;
-  border-color: #444;
+  position: relative;
+  transform: none;
+  box-shadow: 3px 3px 0 #000;
 }
-.level-item.locked::after {
-  content: '🔒'; /* Icono de candado */
-  float: right;
-  opacity: 0.6;
-}
+
 .level-item.locked:hover {
-  background-color: #2a2a2a; /* No cambia al hacer hover */
-}
-.level-item.locked.selected {
-  background-color: #777;
-  color: #1a1a1a;
-  border-color: #777;
+  background: #666;
+  transform: none;
+  box-shadow: 3px 3px 0 #000;
 }
 
+.level-item.locked::after {
+  content: "🔒";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* === BOTÓN VOLVER === */
 .level-back-button {
-  padding: 12px;
-  margin-top: 15px;
-  background-color: #555;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  font-size: 10px;
+  color: #000;
+  background: #ffcc00;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 12px 0;
   cursor: pointer;
-  font-size: 16px;
+  text-transform: uppercase;
+  width: 100%;
+  transition: all 0.15s ease;
+  font-family: 'Press Start 2P', cursive;
 }
+
 .level-back-button:hover {
-  background-color: #777;
+  background: #ffaa00;
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 #000;
 }
 
-
-/* --- Contenedor de Detalles (Derecha) --- */
+/* === PANEL DERECHO (DETALLES DE NIVEL) === */
 .level-details-container {
   width: 60%;
-  padding: 20px 30px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  background: rgba(0, 0, 0, 0.25);
+  gap: 15px;
 }
 
 #level-title {
-  margin-top: 0;
-  font-size: 28px;
-  color: #fff;
+  font-size: 14px;
+  color: #ffcc00;
+  text-shadow: 2px 2px 0 #000;
+  text-align: center;
+  line-height: 1.4;
 }
 
 #level-description {
-  font-size: 16px;
-  color: #ccc;
-  flex-grow: 1; /* Empuja el botón de jugar hacia abajo */
-  line-height: 1.5;
+  font-size: 10px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  line-height: 1.6;
+  flex: 1;
 }
 
+/* === DIFICULTAD === */
 .difficulty {
-  font-size: 18px;
+  font-size: 10px;
+  text-transform: uppercase;
   font-weight: bold;
-  margin: 10px 0;
+  padding: 5px 0;
 }
-/* Colores por dificultad */
-.difficulty-fácil { color: #89cff0; }
-.difficulty-normal { color: #90ee90; }
-.difficulty-difícil { color: #f08080; }
-.difficulty-experto { color: #da70d6; }
+
+.difficulty-fácil { 
+  color: #4caf50; 
+  text-shadow: 1px 1px 0 #000; 
+}
+.difficulty-normal { 
+  color: #5dc0de; 
+  text-shadow: 1px 1px 0 #000; 
+}
+.difficulty-difícil { 
+  color: #ff6b6b; 
+  text-shadow: 1px 1px 0 #000; 
+}
+.difficulty-experto { 
+  color: #da70d6; 
+  text-shadow: 1px 1px 0 #000; 
+}
 
 #level-requirement {
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-#level-requirement.locked {
-  color: #f08080; /* Rojo para el requisito */
-  font-weight: bold;
+  font-size: 9px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  padding: 5px 0;
 }
 
+#level-requirement.locked {
+  color: #ff5555;
+}
+
+#level-requirement.unlocked {
+  color: #4caf50;
+}
+
+/* === BOTÓN JUGAR === */
 .level-play-button {
-  padding: 15px;
-  background-color: #f0e68c;
-  color: #1a1a1a;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 20px;
+  font-size: 10px;
   font-weight: bold;
-  text-align: center;
+  text-transform: uppercase;
+  background: #ffcc00;
+  border: 3px solid #000;
+  color: #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 15px 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Press Start 2P', cursive;
+  margin-top: auto;
 }
+
 .level-play-button:hover {
-  filter: brightness(1.1);
+  background: #ffaa00;
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0 #000;
 }
+
 .level-play-button:disabled {
-  background-color: #555;
-  color: #999;
+  background: #666;
+  color: #333;
+  box-shadow: 3px 3px 0 #000;
   cursor: not-allowed;
+  transform: none;
+}
+
+.level-play-button:disabled:hover {
+  background: #666;
+  transform: none;
+  box-shadow: 3px 3px 0 #000;
+}
+
+/* === SCROLL RETRO === */
+.level-list::-webkit-scrollbar {
+  width: 12px;
+}
+.level-list::-webkit-scrollbar-track {
+  background: #000;
+  border: 2px solid #ffcc00;
+}
+.level-list::-webkit-scrollbar-thumb {
+  background: #ffcc00;
+  border: 2px solid #000;
+}
+
+.level-list::-webkit-scrollbar-thumb:hover {
+  background: #ffaa00;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .level-selection-content {
+    flex-direction: column;
+    height: 85vh;
+  }
+  
+  .level-list-container,
+  .level-details-container {
+    width: 100%;
+  }
+  
+  .level-list-container {
+    border-right: none;
+    border-bottom: 4px solid #000;
+    height: 50%;
+  }
+  
+  .level-details-container {
+    height: 50%;
+  }
 }
