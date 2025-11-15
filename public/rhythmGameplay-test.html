@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rhythm Game Prototype</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .rhythm-container {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .stat-item strong {
+            color: #00ff7f;
+        }
+
+        #action-button {
+            padding: 30px 60px;
+            font-size: 30px;
+            cursor: pointer;
+            background-color: #ff00ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+        }
+
+        #target-indicator {
+            width: 100px;
+            height: 100px;
+            background-color: transparent;
+            margin: 20px auto;
+            border: 5px solid #00ff7f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        #feedback-log {
+            height: 100px;
+            overflow-y: hidden;
+            text-align: center;
+        }
+
+        .perfect {
+            color: yellow;
+        }
+
+        .ok {
+            color: orange;
+        }
+
+        .miss {
+            color: red;
+        }
+    </style>
+</head>
+
+<body style="background-color: black; color: white; margin: 0;">
+
+    <div id="app-root"></div>
+
+    <script type="module">
+
+        import { initRhythmScreen } from "../src/scenes/CARLOS/build/gameplayController.js";
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // Inicia la pantalla del juego de ritmo
+            initRhythmScreen();
+        });
+
+        // Simular navegación (si quieres agregarla)
+        document.addEventListener('navigateToMenu', () => {
+            document.getElementById('app-root').innerHTML = '<h1>Volviste al menú principal.</h1>';
+        });
+    </script>
+
+</body>
+
+</html>

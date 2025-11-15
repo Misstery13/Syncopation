@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -6,8 +6,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  root: 'public',
+  // root: 'public',   <--- Comentado por Carlos F. Patiño para corregir errores de ruta en los tests
   base: './',
+
+  // agregado por: Carlos F. Patiño
+  // Para permitir pruebas con Vitest
+  test: {
+    include: ['tests/*.spec.ts'],
+    globals: true, // Permite usar 'describe', 'it', 'expect' globalmente
+    environment: 'node',
+  },
+
+
+
   build: {
     outDir: '../dist',
     emptyOutDir: true,
