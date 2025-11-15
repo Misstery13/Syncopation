@@ -1,6 +1,8 @@
 # Dependencias
 
 # Archivos de build
+node_modules/
+dist/
 src/scenes/CARLOS/build/
 
 # Editor
