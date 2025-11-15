@@ -121,6 +121,9 @@ export interface Tempo {
   readonly judgementWindow: JudgementWindow['name']; // Ventana de juicio asociada a esta nota
 }
 
+/**
+ * @description Estado global del juego.
+ */
 export interface GameState {
   readonly score: number;
   readonly precision: number;
@@ -150,6 +153,9 @@ export interface SongDefinition {
 
   readonly tempos: readonly Tempo[];
 
+  // Opcional: ruta al archivo de audio para la canción (relativa a la página pública)
+  readonly audioUrl?: string;
+
 }
 
 export interface JudgementWindow {
@@ -175,6 +181,3 @@ export interface RhythmState {
   score: number;
   hits: Record<JudgementWindow['name'], number>;
 }
-
-
-

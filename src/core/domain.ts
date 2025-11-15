@@ -28,7 +28,7 @@ export function setGameStoped(currentState: GameState): GameState {
 
 /**
      * Devuelve un nuevo estado configurado para empezar a jugar.
-     * @param estadoActual El estado inmutable actual.
+     * @param currentState El estado inmutable actual.
      * @returns Un nuevo EstadoJuego con 'estaEnPausa' en false.
      */
 export function setGameStart(currentState: GameState): GameState {
