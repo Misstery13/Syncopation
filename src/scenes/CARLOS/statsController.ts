@@ -25,7 +25,6 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
   container.innerHTML = `
     <div class="header">
       <h2>Estadísticas del Jugador</h2>
-      <button id="btnBack" class="back-btn">Volver</button>
     </div>
 
     <div class="stats-grid">
@@ -54,6 +53,7 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
         <strong>${stats.gamesPlayed}</strong>
       </div>
     </div>
+    <button id="btnBack" class="back-btn">Volver</button>
   `;
 
   // Evento para volver al menú principal
