@@ -1,40 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* === CONFIGURACIÓN GENERAL === */
+html {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Press Start 2P', cursive;
-  background: linear-gradient(#78c7f2, #5dc0de);
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  color: #fff;
-  position: relative;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Press Start 2P', cursive !important;
+  background: linear-gradient(#78c7f2, #5dc0de) !important;
+  background-color: transparent !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  position: relative !important;
 }
 
 /* === FONDO: TIERRA Y PASTO === */
 body::before {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  background: #613f15;
-  box-shadow: inset 0 10px #7a4f1a;
+  content: "" !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100px !important;
+  background: #613f15 !important;
+  box-shadow: inset 0 10px #7a4f1a !important;
+  z-index: 1 !important;
+  pointer-events: none;
 }
 
 body::after {
-  content: "";
-  position: absolute;
-  bottom: 100px;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  background: #4caf50;
+  content: "" !important;
+  position: absolute !important;
+  bottom: 100px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 20px !important;
+  background: #4caf50 !important;
+  z-index: 1 !important;
+  pointer-events: none;
 }
 
 /* === CONTENEDORES GENERALES === */
@@ -228,7 +239,7 @@ body::after {
 }
 
  /* === MENÚ PRINCIPAL EXTENDIDO === */
- 
+
 .main-menu-wrapper {
   width: 90%;
   max-width: 960px;
@@ -338,4 +349,3 @@ body::after {
   width: 220px;
 }
 
- 

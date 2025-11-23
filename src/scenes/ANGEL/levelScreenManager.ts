@@ -4,6 +4,21 @@ import {
   LevelSelection
 } from './levelScreen.ts';
 
+// Función para cargar el CSS dinámicamente
+function loadLevelSelectionCSS(): void {
+  // Verificar si el CSS ya está cargado
+  const existingLink = document.querySelector('link[href*="stylesSelected.css"]');
+  if (existingLink) {
+    return; // Ya está cargado
+  }
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  // Usar la ruta que funciona con el plugin de Vite
+  link.href = '/src/scenes/ANGEL/stylesSelected.css';
+  document.head.appendChild(link);
+}
+
 // Interfaz para la instancia de la vista
 interface LevelSelectViewInstance {
     show: () => void;
@@ -40,6 +55,9 @@ export class LevelSelectManager {
      */
     public show(): Promise<LevelSelection> {
         return new Promise((resolve, reject) => {
+            // Cargar el CSS antes de mostrar la vista
+            loadLevelSelectionCSS();
+            
             // Guarda las funciones de la promesa
             this.resolvePromise = resolve;
             this.rejectPromise = reject;

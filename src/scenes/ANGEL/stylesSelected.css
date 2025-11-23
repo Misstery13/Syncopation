@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* Nota: La fuente 'Press Start 2P' ya está cargada por login.css, no es necesario importarla de nuevo */
 
 /* === RESET Y ESTILOS BASE === */
 .level-selection-overlay * {

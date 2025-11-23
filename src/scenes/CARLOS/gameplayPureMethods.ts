@@ -63,7 +63,7 @@ export function tick(currentState: FullGameState, newTimeMs: number): FullGameSt
     if (missedTempos.length > 0) {
 
         // Calcular el nuevo estado rítmico por cada nota fallada
-        newRhythmState = missedTempos.reduce((rhythmState, missedTempo) => {
+        newRhythmState = missedTempos.reduce((rhythmState, _missedTempo) => {
             // Un 'miss' resetea el combo
             const newCombo = 0;
 
