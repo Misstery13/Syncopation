@@ -75,6 +75,9 @@
 
     <div id="app-root"></div>
 
+    <!-- Contenedor de prueba para Phaser -->
+    <div id="phaser-root" style="width:800px;height:600px;margin:20px auto;border:1px solid #333;background:#000"></div>
+
     <script type="module">
 
         import { initRhythmScreen } from "../src/scenes/CARLOS/build/gameplayController.js";
@@ -82,6 +85,12 @@
         window.addEventListener("DOMContentLoaded", () => {
             // Inicia la pantalla del juego de ritmo
             initRhythmScreen();
+
+            // Para pruebas rápidas: despachar el evento `startGame` después de un pequeño delay
+            // así `src/core/game.ts` arrancará y our phaserBridge montará el canvas en #phaser-root
+            setTimeout(() => {
+                window.dispatchEvent(new Event('startGame'));
+            }, 300);
         });
 
         // Simular navegación (si quieres agregarla)
