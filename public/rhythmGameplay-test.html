@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
     <title>Rhythm Game Prototype</title>
     <style>
         body {
@@ -79,18 +81,28 @@
     <div id="phaser-root" style="width:800px;height:600px;margin:20px auto;border:1px solid #333;background:#000"></div>
 
     <script type="module">
-
-        import { initRhythmScreen } from "../src/scenes/CARLOS/build/gameplayController.js";
+        console.log('Test page script starting...');
+        import { initRhythmScreen } from "../src/scenes/CARLOS/gameplayController.ts";
+        import { initPhaserForTest } from "../src/scenes/CARLOS/testInit.ts";
 
         window.addEventListener("DOMContentLoaded", () => {
-            // Inicia la pantalla del juego de ritmo
-            initRhythmScreen();
+            console.log('DOMContentLoaded event fired');
 
-            // Para pruebas rápidas: despachar el evento `startGame` después de un pequeño delay
-            // así `src/core/game.ts` arrancará y our phaserBridge montará el canvas en #phaser-root
-            setTimeout(() => {
-                window.dispatchEvent(new Event('startGame'));
-            }, 300);
+            // 1. Inicia la pantalla del juego de ritmo
+            try {
+                initRhythmScreen();
+                console.log('initRhythmScreen called successfully');
+            } catch (e) {
+                console.error('Error calling initRhythmScreen:', e);
+            }
+
+            // 2. Inicia Phaser para los sprites
+            try {
+                initPhaserForTest();
+                console.log('initPhaserForTest called successfully');
+            } catch (e) {
+                console.error('Error calling initPhaserForTest:', e);
+            }
         });
 
         // Simular navegación (si quieres agregarla)

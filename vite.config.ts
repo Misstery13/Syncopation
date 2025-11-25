@@ -6,26 +6,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Plugin para mapear rutas /src/ a la carpeta src real del proyecto
-const mapSrcPlugin = () => {
-  return {
-    name: 'map-src',
-    resolveId(id) {
-      // Si la ruta comienza con /src/, mapearla a la carpeta src real
-      if (id.startsWith('/src/')) {
-        // Quitar '/src/' (5 caracteres) y construir la ruta completa
-        const relativePath = id.slice(5); // Quitar '/src/'
-        const filePath = path.resolve(__dirname, 'src', relativePath);
-        return filePath;
-      }
-      return null;
-    }
-  };
-};
+// (Reemplazado por alias en resolve)
 
 export default defineConfig({
-  root: 'public',   
+  root: 'public',
   base: './',
-  plugins: [mapSrcPlugin()],
+  plugins: [], // Removed mapSrcPlugin
 
   // agregado por: Carlos F. Patiño
   // Para permitir pruebas con Vitest
@@ -48,7 +34,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')
+      '@': path.resolve(__dirname, 'src'),
+      '/src': path.resolve(__dirname, 'src')
     }
   },
   server: {

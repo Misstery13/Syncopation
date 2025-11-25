@@ -1,9 +1,11 @@
+console.log('gameplayController module executing...');
 import { FullGameState } from './gameplayTypes';
 import { tick } from './gameplayPureMethods';
 import { processPlayerInput } from './gameplayPureMethods';
 import { initializeFullGame } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { evaluateHit } from './gameplayPureMethods';
+import { playCharacterAnimation } from '../../core/phaserBridge';
 
 let estadoActual: FullGameState;
 let animationFrameId: number;
@@ -132,6 +134,13 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
 
             // Limitar el log
             if (log.children.length > 5) log.removeChild(log.lastChild as Node);
+
+            // Trigger Character Animation
+            if (result.window === 'hit' || result.window === 'delay') {
+                // Randomly choose left or right punch
+                const anim = Math.random() > 0.5 ? 'Kimu-punch-right' : 'Kimu-punch-left';
+                playCharacterAnimation(anim);
+            }
         }
     }
 }

@@ -87,7 +87,16 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
             const main = idle ?? sprites[0];
             const x = cfg.x ?? this.scale.width / 2;
             const y = cfg.y ?? this.scale.height / 2;
-            this.add.sprite(x, y, main.key).setScale(cfg.scale ?? 1).play(`${main.key}-anim`);
+            const sprite = this.add.sprite(x, y, main.key).setScale(cfg.scale ?? 1);
+            sprite.play(`${main.key}-anim`);
+            sprite.setName('character'); // Give it a name to find it later
+
+            // Listen for animation complete to return to idle
+            sprite.on('animationcomplete', (anim: Phaser.Animations.Animation) => {
+                if (anim.key !== `${main.key}-anim`) {
+                    sprite.play(`${main.key}-anim`);
+                }
+            });
         },
         update: function (this: Phaser.Scene, _time: number, _delta: number) {
             // placeholder for future updates
@@ -101,6 +110,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
         parent: parentId,
         backgroundColor: '#000000',
         scene,
+        transparent: true, // Allow transparency if needed
     };
 
     const game = new Phaser.Game(phaserConfig);
@@ -108,20 +118,25 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
     return game;
 }
 
-export function playSpriteAnimation(spriteKey: string, animName?: string) {
+export function playCharacterAnimation(animKey: string) {
     const win = window as any;
     const game: Phaser.Game | undefined = win.__phaserGame;
     if (!game) return false;
     const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
     if (!scene) return false;
-    const spriteObj = scene.children.list.find((c: any) => c.texture && c.texture.key === spriteKey) as Phaser.GameObjects.Sprite | undefined;
+
+    const spriteObj = scene.children.getByName('character') as Phaser.GameObjects.Sprite | undefined;
     if (!spriteObj) return false;
-    const animToPlay = animName ?? `${spriteKey}-anim`;
+
+    // If the animation key doesn't end with -anim, append it (helper)
+    const finalKey = animKey.endsWith('-anim') ? animKey : `${animKey}-anim`;
+
     try {
-        spriteObj.play(animToPlay as any);
+        spriteObj.play(finalKey);
         return true;
     } catch (e) {
-        console.warn('Could not play animation', animToPlay, e);
+        console.warn('Could not play animation', finalKey, e);
         return false;
     }
 }
+// Force recompile 2
