@@ -2,9 +2,11 @@ console.log('gameplayController module executing...');
 import { FullGameState } from './gameplayTypes';
 // Importamos el tipo Tempo para usarlo en la firma de la función
 import { Tempo } from '../../types/index';
-import { tick, processPlayerInput, initializeFullGame, evaluateHit } from './gameplayPureMethods';
+import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
+import { updateStatsFromGame, initPlayerStats, addHits, addMisses } from './statsPureMethods';
+import { setPlayerStats, initStatsScreen } from './statsController';
 
 // --- CONFIGURACIÓN ---
 const THROW_TRAVEL_MS = 2000;
@@ -164,6 +166,38 @@ function gameLoop(timestamp: DOMHighResTimeStamp) {
     // 1. Estado Lógico (Puro)
     // 'tick' devuelve un nuevo estado donde las notas "missed" ya han sido eliminadas del array
     estadoActual = tick(estadoActual, currentSongTimeMs);
+
+    // Detectar fin de la canción (sin notas pendientes) y manejar cierre de nivel
+    if (estadoActual.game.song.tempos.length === 0 && !estadoActual.game.isGameStoped) {
+        // Marcar como detenido para evitar repetir este bloque
+        estadoActual = setFullGameStoped(estadoActual);
+
+        try {
+            // Cargar estadísticas actuales (si existen) o inicializar
+            const raw = localStorage.getItem('playerStats');
+            const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
+
+            // Calcular estadísticas actualizadas usando la función pura
+            const updatedStats = updateStatsFromGame(currentStats, estadoActual.game);
+
+            // Añadir el acumulado de aciertos y fallos usando las funciones puras
+            const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
+            const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
+
+            let finalStats = addHits(updatedStats, successfulHits);
+            finalStats = addMisses(finalStats, missedHits);
+
+            // Persistir y mostrar la pantalla de estadísticas
+            setPlayerStats(finalStats);
+            initStatsScreen();
+        } catch (e) {
+            console.warn('Error persisting/showing stats', e);
+        }
+
+        // Detener el bucle de animación
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        return;
+    }
 
     // 2. Lógica de Spawning
     checkSpawns(currentSongTimeMs, estadoActual.game.song.tempos);

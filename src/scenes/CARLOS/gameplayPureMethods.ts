@@ -38,6 +38,16 @@ export function initializeFullGame(song: SongDefinition, startTimeMs: number): F
     };
 }
 
+export function setFullGameStoped(pGlobalState: FullGameState): FullGameState {
+    return {
+        ...pGlobalState,
+        game: {
+            ...pGlobalState.game,
+            isGameStoped: true
+        }
+    };
+}
+
 /**
  * Función Pura: Simula un frame del juego y actualiza el estado.
  * Esta función es llamada por el bucle principal (requestAnimationFrame/setTimeout).
@@ -202,3 +212,5 @@ export function processPlayerInput(
         rhythm: newRhythmState,
     };
 }
+
+
