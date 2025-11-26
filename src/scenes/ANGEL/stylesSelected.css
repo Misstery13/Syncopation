@@ -7,46 +7,9 @@
   padding: 0;
 }
 
-/* === OVERLAY PRINCIPAL === */
-.level-selection-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(#78c7f2, #5dc0de);
-  font-family: 'Press Start 2P', cursive;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  z-index: 10000;
-  overflow: hidden;
-}
 
-/* Capa de tierra y pasto al fondo */
-.level-selection-overlay::before {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  background: #613f15;
-  box-shadow: inset 0 10px #7a4f1a;
-  z-index: 1;
-}
 
-.level-selection-overlay::after {
-  content: "";
-  position: absolute;
-  bottom: 100px;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  background: #4caf50;
-  z-index: 2;
-}
+
 
 /* === CONTENEDOR PRINCIPAL === */
 .level-selection-content {
