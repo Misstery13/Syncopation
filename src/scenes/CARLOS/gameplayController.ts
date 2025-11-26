@@ -1,14 +1,35 @@
 console.log('gameplayController module executing...');
 import { FullGameState } from './gameplayTypes';
-import { tick } from './gameplayPureMethods';
-import { processPlayerInput } from './gameplayPureMethods';
-import { initializeFullGame } from './gameplayPureMethods';
+// Importamos el tipo Tempo para usarlo en la firma de la función
+import { Tempo } from '../../types/index';
+import { tick, processPlayerInput, initializeFullGame, evaluateHit } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
-import { evaluateHit } from './gameplayPureMethods';
-// 1. IMPORTANTE: Añadir spawnThrowable a los imports
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
 
-// Audio SFX for hits
+// --- CONFIGURACIÓN ---
+const THROW_TRAVEL_MS = 2000;
+const INPUT_SEARCH_WINDOW = 500;
+
+// --- ESTADO MUTABLE (DEL CONTROLADOR) ---
+let estadoActual: FullGameState;
+let animationFrameId: number;
+
+// Set para rastrear IDs de notas que ya lanzamos visualmente (Spawn).
+// Usamos esto porque la nota sigue existiendo en 'tempos' mientras viaja,
+// y no queremos lanzarla dos veces.
+const spawnedTempoIds = new Set<number>();
+
+// Optimizacion: Caché de elementos DOM
+let uiCache: {
+    time?: HTMLElement,
+    score?: HTMLElement,
+    combo?: HTMLElement,
+    remaining?: HTMLElement,
+    indicator?: HTMLElement,
+    log?: HTMLElement
+} = {};
+
+// --- AUDIO SFX ---
 let sfxHit: HTMLAudioElement | null = null;
 let sfxDelay: HTMLAudioElement | null = null;
 let sfxMiss: HTMLAudioElement | null = null;
@@ -16,35 +37,29 @@ let sfxSpawn: HTMLAudioElement | null = null;
 
 function loadSfx() {
     try {
-        sfxHit = new Audio('/assets/audio/acierto.mp3');
-        sfxHit.preload = 'auto';
-        sfxDelay = new Audio('/assets/audio/delay.mp3');
-        sfxDelay.preload = 'auto';
-        sfxMiss = new Audio('/assets/audio/miss.mp3');
-        sfxMiss.preload = 'auto';
-        sfxSpawn = new Audio('/assets/audio/spawn.mp3');
-        sfxSpawn.preload = 'auto';
-
-        // Default volumes (0.0 - 1.0)
-        if (sfxHit) sfxHit.volume = 0.85;
-        if (sfxDelay) sfxDelay.volume = 0.7;
-        if (sfxMiss) sfxMiss.volume = 0.7;
-        if (sfxSpawn) sfxSpawn.volume = 0.9;
-    } catch (e) {
-        console.warn('Could not create SFX audio elements', e);
-        sfxHit = sfxDelay = sfxMiss = null;
-    }
+        sfxHit = new Audio('/assets/audio/acierto.mp3'); sfxHit.volume = 0.7;
+        sfxDelay = new Audio('/assets/audio/delay.mp3'); sfxDelay.volume = 0.7;
+        sfxMiss = new Audio('/assets/audio/miss.mp3'); sfxMiss.volume = 0.7;
+        sfxSpawn = new Audio('/assets/audio/spawn.mp3'); sfxSpawn.volume = 0.5;
+    } catch (e) { console.warn('Audio Error', e); }
 }
 
-let estadoActual: FullGameState;
-let animationFrameId: number;
+function playSfx(type: 'hit' | 'delay' | 'miss' | 'spawn') {
+    try {
+        let sound: HTMLAudioElement | null = null;
+        if (type === 'hit') sound = sfxHit;
+        else if (type === 'delay') sound = sfxDelay;
+        else if (type === 'miss') sound = sfxMiss;
+        else if (type === 'spawn') sound = sfxSpawn;
 
-const launchedTempos = new Set<number>(); // para no lanzar dos veces la misma nota
-const THROW_TRAVEL_MS = 600; // Debe coincidir con la duración en phaserBridge
+        if (sound) {
+            const clone = sound.cloneNode() as HTMLAudioElement;
+            clone.volume = sound.volume;
+            clone.play().catch(() => { });
+        }
+    } catch (e) { }
+}
 
-/**
- * Renderiza el HTML de la vista de Gameplay.
- */
 function renderRhythmView(state: FullGameState): HTMLElement {
     const container = document.createElement('div');
     container.id = 'rhythm-game-container';
@@ -55,17 +70,15 @@ function renderRhythmView(state: FullGameState): HTMLElement {
             <button id="btnBackToMenu" class="back-btn">Volver</button>
             <button id="start-button" class="start-btn">Iniciar Juego</button>
         </div>
-
         <div class="stats">
-            <div class="stat-item"><span class="label">Tiempo (ms)</span><span class="value" id="time-ms">${state.game.currentTimeMs}</span></div>
-            <div class="stat-item"><span class="label">Score Total</span><span class="value" id="total-score">${state.game.score}</span></div>
-            <div class="stat-item"><span class="label">Combo</span><span class="value" id="combo-count">${state.rhythm.combo}</span></div>
-            <div class="stat-item"><span class="label">Notas Restantes</span><span class="value" id="remaining-notes">${state.game.song.tempos.length}</span></div>
+            <div class="stat-item"><span class="label">Tiempo (ms)</span><span class="value" id="time-ms">0</span></div>
+            <div class="stat-item"><span class="label">Score</span><span class="value" id="total-score">0</span></div>
+            <div class="stat-item"><span class="label">Combo</span><span class="value" id="combo-count">0</span></div>
+            <div class="stat-item"><span class="label">Notas</span><span class="value" id="remaining-notes">${state.game.song.tempos.length}</span></div>
         </div>
-
         <div class="game-area">
             <div id="phaser-root"></div>
-            <div id="target-indicator" style="position:absolute;left:10px;top:10px;width:80px;height:80px;border:5px solid #00ff7f;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;font-size:12px;"> </div>
+            <div id="target-indicator" style="position:absolute;left:10px;top:10px;width:80px;height:80px;border:5px solid #00ff7f;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;font-size:12px;"></div>
             <div class="hit-instruction">Pulsa espacio para golpear</div>
         </div>
         <div id="feedback-log"></div>
@@ -73,173 +86,170 @@ function renderRhythmView(state: FullGameState): HTMLElement {
     return container;
 }
 
+function cacheDOMElements() {
+    uiCache = {
+        time: document.getElementById('time-ms') || undefined,
+        score: document.getElementById('total-score') || undefined,
+        combo: document.getElementById('combo-count') || undefined,
+        remaining: document.getElementById('remaining-notes') || undefined,
+        indicator: document.getElementById('target-indicator') || undefined,
+        log: document.getElementById('feedback-log') || undefined
+    };
+}
+
 /**
- * Actualiza los elementos del DOM con el nuevo estado.
- * Y gestiona el lanzamiento (SPAWN) de objetos.
+ * Lógica de Spawning adaptada a Programación Funcional.
+ * Recibe 'readonly Tempo[]' porque no lo modificamos, solo leemos.
  */
-function updateDOM(state: FullGameState): void {
-    const timeEl = document.getElementById('time-ms');
-    const scoreEl = document.getElementById('total-score');
-    const comboEl = document.getElementById('combo-count');
-    const remainingEl = document.getElementById('remaining-notes');
+function checkSpawns(currentTimeMs: number, songTempos: readonly Tempo[]) {
+    // Como tus funciones puras (tick/processInput) ELIMINAN las notas del array,
+    // las notas pendientes siempre están al principio de la lista.
+    // Iteramos solo las primeras notas para ver si toca lanzarlas.
 
-    if (timeEl) timeEl.textContent = state.game.currentTimeMs.toString();
-    if (scoreEl) scoreEl.textContent = state.game.score.toString();
-    if (comboEl) comboEl.textContent = state.rhythm.combo.toString();
-    if (remainingEl) remainingEl.textContent = state.game.song.tempos.length.toString();
+    // Checkeamos las primeras 5 notas por si hay ráfagas muy rápidas
+    const lookAheadCount = 5;
 
-    // Lógica visual simple para ver el ritmo
-    const targetIndicator = document.getElementById('target-indicator');
-    if (targetIndicator && state.game.song.tempos.length > 0) {
-        const nextTempo = state.game.song.tempos[0];
-        const diff = nextTempo.timeMs - state.game.currentTimeMs;
+    for (let i = 0; i < Math.min(songTempos.length, lookAheadCount); i++) {
+        const nextTempo = songTempos[i];
 
-        if (Math.abs(diff) < 500) {
-            targetIndicator.style.backgroundColor = 'blue';
-            targetIndicator.textContent = `¡${Math.round(diff)}ms!`;
-        } else {
-            targetIndicator.style.backgroundColor = 'transparent';
-            targetIndicator.textContent = '';
-        }
+        // Si ya la lanzamos, pasamos a la siguiente
+        if (spawnedTempoIds.has(nextTempo.id)) continue;
 
-        // 2) Lógica de LANZAMIENTO (Spawn)
-        if (!launchedTempos.has(nextTempo.id)) {
-            const timeToImpact = nextTempo.timeMs - state.game.currentTimeMs;
+        const timeToImpact = nextTempo.timeMs - currentTimeMs;
 
-            // Si falta el tiempo correcto para el impacto...
-            if (timeToImpact <= THROW_TRAVEL_MS && timeToImpact > 0) {
-                launchedTempos.add(nextTempo.id);
-
-                // 2. CORRECCIÓN: Aquí llamamos a SPAWN (aparecer y viajar), NO a REACTION.
-                // Play spawn SFX if available
-                try {
-                    if (sfxSpawn) {
-                        const p = sfxSpawn.play(); if (p && p.catch) p.catch(() => { });
-                    }
-                } catch (e) { /* ignore */ }
-
+        // Si estamos en rango de lanzamiento (faltan 600ms o menos)
+        if (timeToImpact <= THROW_TRAVEL_MS) {
+            // Evitar lanzar notas que ya pasaron hace mucho (glitch visual)
+            if (timeToImpact > -100) {
                 spawnThrowable(THROW_TRAVEL_MS);
+                playSfx('spawn');
+
+                // Marcamos como lanzada para no duplicar
+                spawnedTempoIds.add(nextTempo.id);
             }
+        } else {
+            // Como están ordenadas por tiempo, si esta nota está lejos, 
+            // las siguientes también. Podemos salir del bucle.
+            break;
         }
     }
 }
 
-/**
- * Bucle principal de juego usando requestAnimationFrame.
- */
-function gameLoop(timestamp: DOMHighResTimeStamp) {
-    if (estadoActual.game.isGameStoped || estadoActual.game.isPaused) {
-        return;
+function updateVisuals(state: FullGameState) {
+    if (uiCache.time) uiCache.time.textContent = state.game.currentTimeMs.toString();
+    if (uiCache.score) uiCache.score.textContent = state.game.score.toString();
+    if (uiCache.combo) uiCache.combo.textContent = state.rhythm.combo.toString();
+    if (uiCache.remaining) uiCache.remaining.textContent = state.game.song.tempos.length.toString();
+
+    if (uiCache.indicator && state.game.song.tempos.length > 0) {
+        // Indicador visual basado en la primera nota disponible
+        const activeNote = state.game.song.tempos[0];
+        const diff = activeNote.timeMs - state.game.currentTimeMs;
+
+        if (diff < 500 && diff > -200) {
+            uiCache.indicator.style.backgroundColor = `rgba(0, 0, 255, ${1 - (Math.abs(diff) / 500)})`;
+            uiCache.indicator.textContent = `${Math.round(diff)}`;
+        } else {
+            uiCache.indicator.style.backgroundColor = 'transparent';
+            uiCache.indicator.textContent = '';
+        }
     }
+}
+
+function gameLoop(timestamp: DOMHighResTimeStamp) {
+    if (estadoActual.game.isGameStoped || estadoActual.game.isPaused) return;
 
     const currentSongTimeMs = Math.round(timestamp - estadoActual.gameStartTime);
+
+    // 1. Estado Lógico (Puro)
+    // 'tick' devuelve un nuevo estado donde las notas "missed" ya han sido eliminadas del array
     estadoActual = tick(estadoActual, currentSongTimeMs);
-    updateDOM(estadoActual);
+
+    // 2. Lógica de Spawning
+    checkSpawns(currentSongTimeMs, estadoActual.game.song.tempos);
+
+    // 3. Renderizado
+    updateVisuals(estadoActual);
+
     animationFrameId = requestAnimationFrame(gameLoop);
 }
 
-/**
- * Manejador de la pulsación del jugador (Input).
- */
 function handleInput(event: MouseEvent | KeyboardEvent) {
     if (event instanceof KeyboardEvent) {
         if (event.code !== 'Space') return;
-        try { event.preventDefault(); } catch (e) { /* ignore */ }
+        event.preventDefault();
     }
-
-    // Debug: log that the handler received the event (helps detectar 'no se presiona')
-    try { console.log('[handleInput] event:', event instanceof KeyboardEvent ? event.code : 'click', 'time:', performance.now()); } catch (e) { }
 
     const pressTimeAbsolute = performance.now();
     const pressTimeGame = Math.round(pressTimeAbsolute - estadoActual.gameStartTime);
 
-    try { console.log('[handleInput] pressTimeGame:', pressTimeGame); } catch (e) { }
+    // Búsqueda de nota objetivo:
+    // Al ser un array que se reduce, la nota objetivo suele ser la primera (tempos[0])
+    // a menos que el jugador se adelante mucho a la segunda.
+    // Buscamos en las primeras 3 para cubrir "double hits" rápidos.
 
-    const targetTempo = estadoActual.game.song.tempos.length > 0
-        ? estadoActual.game.song.tempos.reduce((prev, curr) => {
-            const diffPrev = Math.abs(prev.timeMs - pressTimeGame);
-            const diffCurr = Math.abs(curr.timeMs - pressTimeGame);
-            return (diffCurr < diffPrev) ? curr : prev;
-        }, estadoActual.game.song.tempos[0])
-        : undefined;
+    let bestCandidate = undefined;
+    let minDiff = Infinity;
+    const searchLimit = Math.min(estadoActual.game.song.tempos.length, 3);
 
-    try { console.log('[handleInput] targetTempo:', targetTempo ? { id: targetTempo.id, timeMs: targetTempo.timeMs } : null); } catch (e) { }
+    for (let i = 0; i < searchLimit; i++) {
+        const tempo = estadoActual.game.song.tempos[i];
+        const diff = Math.abs(tempo.timeMs - pressTimeGame);
 
+        if (diff <= INPUT_SEARCH_WINDOW && diff < minDiff) {
+            minDiff = diff;
+            bestCandidate = tempo;
+        }
+    }
+
+    // Procesamos el input
+    // 'processPlayerInput' devuelve nuevo estado con la nota golpeada ELIMINADA del array
     const nuevoEstado = processPlayerInput(estadoActual, pressTimeGame);
 
     if (nuevoEstado !== estadoActual) {
-        estadoActual = nuevoEstado;
-        updateDOM(estadoActual);
+        // Feedback
+        const targetTime = bestCandidate ? bestCandidate.timeMs : pressTimeGame;
+        const result = evaluateHit(targetTime, pressTimeGame);
 
-        const log = document.getElementById('feedback-log');
-        if (log) {
-            const targetTimeForLog = targetTempo ? targetTempo.timeMs : (estadoActual.game.song.tempos[0]?.timeMs || 0);
+        playSfx(result.window);
 
-            // Calculamos qué tal fue el golpe
-            const result = evaluateHit(targetTimeForLog, pressTimeGame);
-
-            const cls = result.window === 'hit' ? 'perfect' : result.window === 'delay' ? 'ok' : 'miss';
-            log.innerHTML = `<span class="${cls}">${result.window.toUpperCase()} (${result.deltaMs}ms)</span>` + log.innerHTML;
-            if (log.children.length > 5) log.removeChild(log.lastChild as Node);
-
-            // Play SFX depending on the judgment
-            try {
-                if (result.window === 'hit' && sfxHit) {
-                    const p = sfxHit.play(); if (p && p.catch) p.catch(() => { });
-                } else if (result.window === 'delay' && sfxDelay) {
-                    const p = sfxDelay.play(); if (p && p.catch) p.catch(() => { });
-                } else if (result.window === 'miss' && sfxMiss) {
-                    const p = sfxMiss.play(); if (p && p.catch) p.catch(() => { });
-                }
-            } catch (e) {
-                // ignore audio play errors (autoplay policies etc.)
-            }
-
-            // Trigger Character Animation
-            if (result.window === 'hit' || result.window === 'delay') {
-                const anim = Math.random() > 0.5 ? 'Kimu-punch-right' : 'Kimu-punch-left';
-                playCharacterAnimation(anim);
-            }
-
-            // 3. CORRECCIÓN: Aquí llamamos a la REACCIÓN física de la bola
-            // (brincar si es delay, salir disparada si es hit, caer si es miss)
-            handleThrowableReaction(result.window);
+        if (result.window === 'hit' || result.window === 'delay') {
+            const anim = Math.random() > 0.5 ? 'Kimu-punch-right' : 'Kimu-punch-left';
+            playCharacterAnimation(anim);
         }
-    }
-    else {
-        // Input fue descartado: log motivo aproximado para debugging (fuera de ventana o sin nota cercana)
-        try {
-            const nearby = targetTempo ? Math.abs(targetTempo.timeMs - pressTimeGame) : null;
-            console.log('[handleInput] input ignored — nearbyDelta:', nearby, 'temposRemaining:', estadoActual.game.song.tempos.length);
-        } catch (e) { }
+
+        handleThrowableReaction(result.window);
+
+        if (uiCache.log) {
+            const cls = result.window === 'hit' ? 'perfect' : result.window === 'delay' ? 'ok' : 'miss';
+            uiCache.log.insertAdjacentHTML('afterbegin',
+                `<div class="${cls}">${result.window.toUpperCase()} (${result.deltaMs}ms)</div>`
+            );
+            if (uiCache.log.children.length > 5) uiCache.log.lastElementChild?.remove();
+        }
+
+        estadoActual = nuevoEstado;
+        updateVisuals(estadoActual);
     }
 }
 
-/**
- * Inicializa la pantalla de Gameplay.
- */
 export function initRhythmScreen(): void {
     const root = document.getElementById('app-root');
     if (!root) return;
 
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
+    const dummyState = initializeFullGame(SONG_TEST_LEVEL, 0);
+
     root.innerHTML = '';
-    const dummyState = {
-        game: { score: 0, precision: 100, currentTimeMs: 0, currentScene: 'Gameplay', isRunning: false, isPaused: false, isGameStoped: false, level: 1, song: SONG_TEST_LEVEL } as any,
-        rhythm: { combo: 0, maxCombo: 0, score: 0, hits: { delay: 0, hit: 0, miss: 0 } } as any,
-        gameStartTime: 0
-    } as FullGameState;
-    const view = renderRhythmView(dummyState);
-    root.appendChild(view);
+    root.appendChild(renderRhythmView(dummyState));
+    cacheDOMElements();
 
     const actionButton = document.getElementById('action-button') as HTMLButtonElement | null;
     actionButton?.setAttribute('disabled', 'true');
 
-    view.querySelector('#btnBackToMenu')?.addEventListener('click', () => {
-        if (estadoActual) {
-            estadoActual = { ...estadoActual, game: { ...estadoActual.game, isGameStoped: true } };
-        }
+    document.getElementById('btnBackToMenu')?.addEventListener('click', () => {
+        if (estadoActual) estadoActual = { ...estadoActual, game: { ...estadoActual.game, isGameStoped: true } };
         cancelAnimationFrame(animationFrameId);
         document.dispatchEvent(new CustomEvent('navigateToMenu'));
     });
@@ -248,39 +258,42 @@ export function initRhythmScreen(): void {
     let audioEl: HTMLAudioElement | null = null;
 
     function startNow() {
-        // Load SFX for hits/delays/miss
-        try { loadSfx(); } catch (e) { /* ignore */ }
+        loadSfx();
         const startTime = performance.now();
+
+        // Limpiamos el set de spawns al reiniciar
+        spawnedTempoIds.clear();
+
         estadoActual = initializeFullGame(SONG_TEST_LEVEL, startTime);
+
         actionButton?.removeAttribute('disabled');
-        document.getElementById('action-button')?.addEventListener('click', handleInput);
+        const btn = document.getElementById('action-button');
+        const newBtn = btn?.cloneNode(true);
+        if (btn && newBtn) {
+            btn.parentNode?.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', handleInput as any);
+        }
+        document.removeEventListener('keydown', handleInput);
         document.addEventListener('keydown', handleInput);
+
         if (startButton) startButton.style.display = 'none';
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function startSequence() {
         if (startButton) startButton.disabled = true;
-        const audioUrl = (SONG_TEST_LEVEL as any).audioUrl as string | undefined;
+        const audioUrl = (SONG_TEST_LEVEL as any).audioUrl;
+
         if (audioUrl) {
             audioEl = new Audio(audioUrl);
             audioEl.preload = 'auto';
-            const playPromise = audioEl.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    startNow();
-                }).catch(() => {
-                    alert('Para reproducir audio, haz clic en la página y luego pulsa "Iniciar Juego" otra vez.');
-                    if (startButton) startButton.disabled = false;
-                    const resumeHandler = () => {
-                        audioEl!.play().then(() => startNow()).catch(() => startNow());
-                        document.removeEventListener('click', resumeHandler);
-                    };
-                    document.addEventListener('click', resumeHandler, { once: true } as any);
-                });
-            } else {
-                startNow();
-            }
+            audioEl.play().then(startNow).catch(() => {
+                alert('Interactúa con la página para reproducir audio.');
+                if (startButton) startButton.disabled = false;
+                document.addEventListener('click', () => {
+                    audioEl!.play().then(startNow).catch(startNow);
+                }, { once: true });
+            });
         } else {
             startNow();
         }
