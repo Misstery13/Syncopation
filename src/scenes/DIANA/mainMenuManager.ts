@@ -3,10 +3,8 @@ import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
 import type { User } from '../../types';
 
-import '../ANGEL/stylesSelected.css';
-import '../CARLOS/statsScreen.css';
-import '../CARLOS/statsScreen2.css';
-import '../SAID/credits.css';
+// Nota: El CSS se carga desde public/assets/css/style.css (index.html).
+// Se removieron imports relativos a CSS para evitar que el bundler intente resolver archivos dentro de src.
 
 type SceneId =
   | 'start-game'
