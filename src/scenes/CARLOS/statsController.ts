@@ -16,6 +16,15 @@ function loadPlayerStats(): PlayerStats {
 }
 
 /**
+ * Persiste las estadísticas del jugador en almacenamiento local.
+ */
+export function setPlayerStats(stats: PlayerStats): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+  } catch (e) { console.warn('Could not persist player stats', e); }
+}
+
+/**
  * Renderiza el contenido principal de la pantalla de estadísticas.
  */
 function renderStatsView(stats: PlayerStats): HTMLElement {
@@ -67,11 +76,12 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
 /**
  * Inicializa la pantalla de estadísticas.
  */
-export function initStatsScreen(): void {
-  const root = document.getElementById('app-root'); // o tu contenedor principal
+export function initStatsScreen(mountRoot?: HTMLElement): void {
+  const root = mountRoot ?? document.getElementById('app-root'); // o tu contenedor principal
   if (!root) return;
 
   const stats = loadPlayerStats();
-  root.innerHTML = ''; // limpia contenido anterior
+  // Si montamos embebido no limpiamos el app-root global (solo limpiamos el contenedor objetivo)
+  if (!mountRoot) root.innerHTML = '';
   root.appendChild(renderStatsView(stats));
 }
