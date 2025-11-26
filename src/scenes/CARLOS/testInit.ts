@@ -10,12 +10,12 @@ export function initPhaserForTest() {
                 { key: 'Kimu-punch-right', path: '/assets/images/sprites/Kimu-punch-right.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
                 { key: 'Kimu-punch-left', path: '/assets/images/sprites/Kimu-punch-left.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
 
-                { key: 'throwable', path: '/assets/images/sprites/throwable.png', frameWidth: 64, frameHeight: 64, frameRate: 1, loop: true },
+                { key: 'throwable', path: '/assets/images/sprites/throwable.png', frameWidth: 64, frameHeight: 64, frameRate: 1, frameCount: 1, loop: false },
             ],
             frameWidth: 64,
             frameHeight: 64,
             frameRate: 10,
-            scale: 2,
+            scale: 5,
             x: 400, // Center in 800x600 container
             y: 300
         });
