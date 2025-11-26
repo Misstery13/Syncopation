@@ -1,6 +1,8 @@
 import { LevelSelectManager } from '../ANGEL/levelScreenManager';
 import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
+import { initRhythmScreen } from '../CARLOS/gameplayController';
+import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
 import type { User } from '../../types';
 
 // Nota: El CSS se carga desde public/assets/css/style.css (index.html).
@@ -280,9 +282,15 @@ export class MainMenuManager {
     manager
       .show()
       .then((selection) => {
-        this.renderPlaceholder(
-          `Nivel seleccionado: ${selection.levelId}. Canción: ${selection.songFile}.`
-        );
+        // Al seleccionar "Jugar" navegamos a la página de test del gameplay.
+        // Si más adelante queremos pasar información podemos añadir query params.
+        try {
+          const target = '/rhythmGameplay-test.html';
+          window.location.href = target;
+        } catch (e) {
+          // Fallback: mostrar mensaje en UI
+          this.renderPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
+        }
       })
       .catch(() => {
         this.renderPlaceholder('Selección cancelada. Puedes explorar otra opción.');

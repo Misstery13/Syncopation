@@ -5,7 +5,7 @@ import { Tempo } from '../../types/index';
 import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
-import { updateStatsFromGame, initPlayerStats, addHits, addMisses } from './statsPureMethods';
+import { updateStatsFromGame, initPlayerStats } from './statsPureMethods';
 import { setPlayerStats, initStatsScreen } from './statsController';
 
 // --- CONFIGURACIÓN ---
@@ -177,15 +177,12 @@ function gameLoop(timestamp: DOMHighResTimeStamp) {
             const raw = localStorage.getItem('playerStats');
             const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
 
-            // Calcular estadísticas actualizadas usando la función pura
-            const updatedStats = updateStatsFromGame(currentStats, estadoActual.game);
-
-            // Añadir el acumulado de aciertos y fallos usando las funciones puras
+            // Calcular aciertos/fallos del nivel actual
             const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
             const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
 
-            let finalStats = addHits(updatedStats, successfulHits);
-            finalStats = addMisses(finalStats, missedHits);
+            // Calcular estadísticas actualizadas (incluye añadir hits/misses y marca perfectos)
+            const finalStats = updateStatsFromGame(currentStats, estadoActual.game, successfulHits, missedHits);
 
             // Persistir y mostrar la pantalla de estadísticas
             setPlayerStats(finalStats);
