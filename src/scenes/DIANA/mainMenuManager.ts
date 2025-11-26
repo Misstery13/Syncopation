@@ -3,10 +3,8 @@ import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
 import type { User } from '../../types';
 
-import '../ANGEL/stylesSelected.css';
-import '../CARLOS/statsScreen.css';
-import '../CARLOS/statsScreen2.css';
-import '../SAID/credits.css';
+// Nota: El CSS se carga desde public/assets/css/style.css (index.html).
+// Se removieron imports relativos a CSS para evitar que el bundler intente resolver archivos dentro de src.
 
 type SceneId =
   | 'start-game'
@@ -61,6 +59,7 @@ export class MainMenuManager {
   private readonly appRoot: HTMLElement;
   private readonly logoutBtn: HTMLButtonElement;
   private readonly gameCanvas: HTMLCanvasElement;
+  private readonly menuPanel: HTMLElement;
 
   private readonly items: MenuItemData[] = createSceneMenuItems();
   private readonly optionElements: HTMLLIElement[] = [];
@@ -82,8 +81,9 @@ export class MainMenuManager {
     const appRoot = document.getElementById('app-root');
     const logoutBtn = document.getElementById('logoutBtn') as HTMLButtonElement | null;
     const gameCanvas = document.getElementById('gameCanvas') as HTMLCanvasElement | null;
+    const menuPanel = document.querySelector('.main-menu-panel') as HTMLElement | null;
 
-    if (!screen || !optionsList || !description || !subtitle || !appRoot || !logoutBtn || !gameCanvas) {
+    if (!screen || !optionsList || !description || !subtitle || !appRoot || !logoutBtn || !gameCanvas || !menuPanel) {
       throw new Error('[MainMenuManager] Elementos críticos del DOM no encontrados');
     }
 
@@ -94,6 +94,7 @@ export class MainMenuManager {
     this.appRoot = appRoot;
     this.logoutBtn = logoutBtn;
     this.gameCanvas = gameCanvas;
+    this.menuPanel = menuPanel;
     this.callbacks = callbacks ?? {};
 
     registerCreditsNavigation();
@@ -110,6 +111,18 @@ export class MainMenuManager {
     this.screen.style.display = 'flex';
     this.screen.classList.remove('hidden');
     this.gameCanvas.style.display = 'none';
+
+    // Asegurar que el panel del menú esté visible
+    this.menuPanel.style.display = 'flex';
+    // Restaurar los estilos del contenido
+    this.appRoot.style.width = '';
+    this.appRoot.style.maxWidth = '';
+    this.appRoot.style.display = '';
+    this.appRoot.style.alignItems = '';
+    this.appRoot.style.justifyContent = '';
+    this.appRoot.style.padding = '';
+    // Remover clase de estadísticas
+    this.appRoot.classList.remove('stats-view');
 
     this.renderSubtitle();
     this.highlightOption(0);
@@ -282,6 +295,18 @@ export class MainMenuManager {
   private openCarlosStats(): void {
     this.detachKeyboard();
     this.clearContent();
+    // Ocultar el panel del menú lateral para mostrar solo las estadísticas
+    this.menuPanel.style.display = 'none';
+    // Hacer que el contenido ocupe todo el espacio y centre el contenido
+    this.appRoot.style.width = '100%';
+    this.appRoot.style.maxWidth = '100%';
+    this.appRoot.style.display = 'flex';
+    this.appRoot.style.alignItems = 'center';
+    this.appRoot.style.justifyContent = 'center';
+    // Padding responsivo - se maneja mejor con CSS media queries
+    this.appRoot.style.padding = '';
+    // Agregar clase para estilos CSS específicos
+    this.appRoot.classList.add('stats-view');
     initStatsScreen();
   }
 
@@ -325,6 +350,17 @@ export class MainMenuManager {
 
   private resumeFromExternalNavigation(): void {
     if (!this.authContext) return;
+    // Restaurar el panel del menú cuando se regresa
+    this.menuPanel.style.display = 'flex';
+    // Restaurar los estilos del contenido
+    this.appRoot.style.width = '';
+    this.appRoot.style.maxWidth = '';
+    this.appRoot.style.display = '';
+    this.appRoot.style.alignItems = '';
+    this.appRoot.style.justifyContent = '';
+    this.appRoot.style.padding = '';
+    // Remover clase de estadísticas
+    this.appRoot.classList.remove('stats-view');
     this.show(this.authContext);
   }
 
@@ -336,4 +372,3 @@ export class MainMenuManager {
     }
   }
 }
-

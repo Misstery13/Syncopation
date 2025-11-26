@@ -1,6 +1,8 @@
 # Dependencias
 
 # Archivos de build
+node_modules/
+dist/
 src/scenes/CARLOS/build/
 
 # Editor
@@ -8,7 +10,7 @@ src/scenes/CARLOS/build/
 .idea/
 
 # Sistema
-.DS_Store
+node_modules/
 Thumbs.db
 
 # Logs

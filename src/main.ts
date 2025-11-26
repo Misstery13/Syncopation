@@ -17,7 +17,45 @@ loginManager = new LoginManager({
 
 loginManager.init();
 
+// --- Main Menu Soundtrack Logic ---
+const menuMusic = new Audio('assets/audio/test.mp3');
+menuMusic.loop = true;
+menuMusic.volume = 0.5; // Default volume
+
+// Attempt to play immediately
+menuMusic.play().catch(() => {
+  console.log('Autoplay blocked. Waiting for user interaction to play menu music.');
+  const playOnInteraction = () => {
+    menuMusic.play();
+    document.removeEventListener('click', playOnInteraction);
+    document.removeEventListener('keydown', playOnInteraction);
+  };
+  document.addEventListener('click', playOnInteraction);
+  document.addEventListener('keydown', playOnInteraction);
+});
+
+// --- Button Sound Logic ---
+const btnSound = new Audio('assets/audio/sfx/btnSound.mp3');
+btnSound.volume = 0.5;
+
+document.addEventListener('click', (event) => {
+  const target = event.target as HTMLElement;
+  // Check if the clicked element or its parent is a button or menu option
+  const clickable = target.closest('button, .btn, .menu-option');
+
+  if (clickable) {
+    // Clone the node to allow overlapping sounds if clicked rapidly
+    const soundClone = btnSound.cloneNode() as HTMLAudioElement;
+    soundClone.volume = btnSound.volume;
+    soundClone.play().catch(e => console.warn('Button sound blocked', e));
+  }
+});
+
 window.addEventListener('startGame', () => {
+  // Stop menu music when game starts
+  menuMusic.pause();
+  menuMusic.currentTime = 0;
+
   const game: Game = new Game();
   game.start();
 });
@@ -40,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const persisted = JSON.parse(saved);
     if (typeof persisted.volume === 'number') {
       volume.value = String(persisted.volume);
+      // Apply saved volume to global audio
+      menuMusic.volume = persisted.volume / 100;
+      btnSound.volume = persisted.volume / 100;
     }
     if (typeof persisted.difficulty === 'string') {
       difficulty.value = persisted.difficulty;
@@ -61,6 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if ((window as any).game?.sound) {
       (window as any).game.sound.volume = settings.volume / 100;
     }
+
+    // Update global audio volume
+    menuMusic.volume = settings.volume / 100;
+    btnSound.volume = settings.volume / 100;
 
     modal.hide();
   });
