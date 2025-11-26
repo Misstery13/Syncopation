@@ -1,11 +1,12 @@
 console.log('gameplayController module executing...');
+console.log('Importing gameplayPureMethods and gameplayTypes...');
 import { FullGameState } from './gameplayTypes';
 import { tick } from './gameplayPureMethods';
 import { processPlayerInput } from './gameplayPureMethods';
 import { initializeFullGame } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { evaluateHit } from './gameplayPureMethods';
-import { playCharacterAnimation } from '../../core/phaserBridge';
+import { launchThrowable, playCharacterAnimation } from '../../core/phaserBridge';
 
 let estadoActual: FullGameState;
 let animationFrameId: number;
@@ -141,6 +142,8 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
                 const anim = Math.random() > 0.5 ? 'Kimu-punch-right' : 'Kimu-punch-left';
                 playCharacterAnimation(anim);
             }
+
+            launchThrowable(result.window);
         }
     }
 }
