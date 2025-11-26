@@ -1,15 +1,46 @@
 console.log('gameplayController module executing...');
-console.log('Importing gameplayPureMethods and gameplayTypes...');
 import { FullGameState } from './gameplayTypes';
 import { tick } from './gameplayPureMethods';
 import { processPlayerInput } from './gameplayPureMethods';
 import { initializeFullGame } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { evaluateHit } from './gameplayPureMethods';
-import { launchThrowable, playCharacterAnimation } from '../../core/phaserBridge';
+// 1. IMPORTANTE: Añadir spawnThrowable a los imports
+import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
+
+// Audio SFX for hits
+let sfxHit: HTMLAudioElement | null = null;
+let sfxDelay: HTMLAudioElement | null = null;
+let sfxMiss: HTMLAudioElement | null = null;
+let sfxSpawn: HTMLAudioElement | null = null;
+
+function loadSfx() {
+    try {
+        sfxHit = new Audio('/assets/audio/acierto.mp3');
+        sfxHit.preload = 'auto';
+        sfxDelay = new Audio('/assets/audio/delay.mp3');
+        sfxDelay.preload = 'auto';
+        sfxMiss = new Audio('/assets/audio/miss.mp3');
+        sfxMiss.preload = 'auto';
+        sfxSpawn = new Audio('/assets/audio/spawn.mp3');
+        sfxSpawn.preload = 'auto';
+
+        // Default volumes (0.0 - 1.0)
+        if (sfxHit) sfxHit.volume = 0.85;
+        if (sfxDelay) sfxDelay.volume = 0.7;
+        if (sfxMiss) sfxMiss.volume = 0.7;
+        if (sfxSpawn) sfxSpawn.volume = 0.9;
+    } catch (e) {
+        console.warn('Could not create SFX audio elements', e);
+        sfxHit = sfxDelay = sfxMiss = null;
+    }
+}
 
 let estadoActual: FullGameState;
 let animationFrameId: number;
+
+const launchedTempos = new Set<number>(); // para no lanzar dos veces la misma nota
+const THROW_TRAVEL_MS = 600; // Debe coincidir con la duración en phaserBridge
 
 /**
  * Renderiza el HTML de la vista de Gameplay.
@@ -26,17 +57,17 @@ function renderRhythmView(state: FullGameState): HTMLElement {
         </div>
 
         <div class="stats">
-            <div class="stat-item">Tiempo (ms): <strong id="time-ms">${state.game.currentTimeMs}</strong></div>
-            <div class="stat-item">Score Total: <strong id="total-score">${state.game.score}</strong></div>
-            <div class="stat-item">Combo: <strong id="combo-count">${state.rhythm.combo}</strong></div>
-            <div class="stat-item">Notas Restantes: <strong id="remaining-notes">${state.game.song.tempos.length}</strong></div>
+            <div class="stat-item"><span class="label">Tiempo (ms)</span><span class="value" id="time-ms">${state.game.currentTimeMs}</span></div>
+            <div class="stat-item"><span class="label">Score Total</span><span class="value" id="total-score">${state.game.score}</span></div>
+            <div class="stat-item"><span class="label">Combo</span><span class="value" id="combo-count">${state.rhythm.combo}</span></div>
+            <div class="stat-item"><span class="label">Notas Restantes</span><span class="value" id="remaining-notes">${state.game.song.tempos.length}</span></div>
         </div>
 
         <div class="game-area">
-            <div id="target-indicator"></div>
-            <button id="action-button" class="action-btn">GOLPEAR (Espacio)</button>
+            <div id="phaser-root"></div>
+            <div id="target-indicator" style="position:absolute;left:10px;top:10px;width:80px;height:80px;border:5px solid #00ff7f;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;font-size:12px;"> </div>
+            <div class="hit-instruction">Pulsa espacio para golpear</div>
         </div>
-        
         <div id="feedback-log"></div>
     `;
     return container;
@@ -44,6 +75,7 @@ function renderRhythmView(state: FullGameState): HTMLElement {
 
 /**
  * Actualiza los elementos del DOM con el nuevo estado.
+ * Y gestiona el lanzamiento (SPAWN) de objetos.
  */
 function updateDOM(state: FullGameState): void {
     const timeEl = document.getElementById('time-ms');
@@ -56,18 +88,38 @@ function updateDOM(state: FullGameState): void {
     if (comboEl) comboEl.textContent = state.rhythm.combo.toString();
     if (remainingEl) remainingEl.textContent = state.game.song.tempos.length.toString();
 
-    // Lógica visual simple para ver el ritmo: Cambia el color si hay un evento cerca (ej: +/- 500ms)
+    // Lógica visual simple para ver el ritmo
     const targetIndicator = document.getElementById('target-indicator');
     if (targetIndicator && state.game.song.tempos.length > 0) {
         const nextTempo = state.game.song.tempos[0];
         const diff = nextTempo.timeMs - state.game.currentTimeMs;
 
-        if (Math.abs(diff) < 500) { // Si faltan menos de 500ms
+        if (Math.abs(diff) < 500) {
             targetIndicator.style.backgroundColor = 'blue';
             targetIndicator.textContent = `¡${Math.round(diff)}ms!`;
         } else {
             targetIndicator.style.backgroundColor = 'transparent';
             targetIndicator.textContent = '';
+        }
+
+        // 2) Lógica de LANZAMIENTO (Spawn)
+        if (!launchedTempos.has(nextTempo.id)) {
+            const timeToImpact = nextTempo.timeMs - state.game.currentTimeMs;
+
+            // Si falta el tiempo correcto para el impacto...
+            if (timeToImpact <= THROW_TRAVEL_MS && timeToImpact > 0) {
+                launchedTempos.add(nextTempo.id);
+
+                // 2. CORRECCIÓN: Aquí llamamos a SPAWN (aparecer y viajar), NO a REACTION.
+                // Play spawn SFX if available
+                try {
+                    if (sfxSpawn) {
+                        const p = sfxSpawn.play(); if (p && p.catch) p.catch(() => { });
+                    }
+                } catch (e) { /* ignore */ }
+
+                spawnThrowable(THROW_TRAVEL_MS);
+            }
         }
     }
 }
@@ -77,19 +129,12 @@ function updateDOM(state: FullGameState): void {
  */
 function gameLoop(timestamp: DOMHighResTimeStamp) {
     if (estadoActual.game.isGameStoped || estadoActual.game.isPaused) {
-        return; // Detener el loop
+        return;
     }
 
-    // 1. Calcular el tiempo actual de la canción
     const currentSongTimeMs = Math.round(timestamp - estadoActual.gameStartTime);
-
-    // 2. Transición Pura de Estado: Actualizar por tiempo (tick)
     estadoActual = tick(estadoActual, currentSongTimeMs);
-
-    // 3. Renderizar
     updateDOM(estadoActual);
-
-    // Continuar el bucle
     animationFrameId = requestAnimationFrame(gameLoop);
 }
 
@@ -97,15 +142,19 @@ function gameLoop(timestamp: DOMHighResTimeStamp) {
  * Manejador de la pulsación del jugador (Input).
  */
 function handleInput(event: MouseEvent | KeyboardEvent) {
-    if (event instanceof KeyboardEvent && event.code !== 'Space') return;
+    if (event instanceof KeyboardEvent) {
+        if (event.code !== 'Space') return;
+        try { event.preventDefault(); } catch (e) { /* ignore */ }
+    }
 
-    // 1. Obtener el tiempo de la pulsación (clave para la precisión)
+    // Debug: log that the handler received the event (helps detectar 'no se presiona')
+    try { console.log('[handleInput] event:', event instanceof KeyboardEvent ? event.code : 'click', 'time:', performance.now()); } catch (e) { }
+
     const pressTimeAbsolute = performance.now();
-
-    // Calcular el tiempo de juego al momento de la pulsación
     const pressTimeGame = Math.round(pressTimeAbsolute - estadoActual.gameStartTime);
 
-    // 2. Determinar la nota objetivo más cercana ANTES de procesar el input
+    try { console.log('[handleInput] pressTimeGame:', pressTimeGame); } catch (e) { }
+
     const targetTempo = estadoActual.game.song.tempos.length > 0
         ? estadoActual.game.song.tempos.reduce((prev, curr) => {
             const diffPrev = Math.abs(prev.timeMs - pressTimeGame);
@@ -114,37 +163,55 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
         }, estadoActual.game.song.tempos[0])
         : undefined;
 
-    // 3. Transición Pura de Estado: Procesar Input
+    try { console.log('[handleInput] targetTempo:', targetTempo ? { id: targetTempo.id, timeMs: targetTempo.timeMs } : null); } catch (e) { }
+
     const nuevoEstado = processPlayerInput(estadoActual, pressTimeGame);
 
-    // Solo si el estado cambió (ej: hubo un acierto/fallo que afectó el score/combo)
     if (nuevoEstado !== estadoActual) {
-        // Aquí se puede agregar lógica de feedback visual (ej: flash en pantalla)
-
-        // 3. Actualizar el estado mutable global
         estadoActual = nuevoEstado;
         updateDOM(estadoActual);
 
-        // Mostrar feedback en el log
         const log = document.getElementById('feedback-log');
         if (log) {
             const targetTimeForLog = targetTempo ? targetTempo.timeMs : (estadoActual.game.song.tempos[0]?.timeMs || 0);
+
+            // Calculamos qué tal fue el golpe
             const result = evaluateHit(targetTimeForLog, pressTimeGame);
+
             const cls = result.window === 'hit' ? 'perfect' : result.window === 'delay' ? 'ok' : 'miss';
             log.innerHTML = `<span class="${cls}">${result.window.toUpperCase()} (${result.deltaMs}ms)</span>` + log.innerHTML;
-
-            // Limitar el log
             if (log.children.length > 5) log.removeChild(log.lastChild as Node);
+
+            // Play SFX depending on the judgment
+            try {
+                if (result.window === 'hit' && sfxHit) {
+                    const p = sfxHit.play(); if (p && p.catch) p.catch(() => { });
+                } else if (result.window === 'delay' && sfxDelay) {
+                    const p = sfxDelay.play(); if (p && p.catch) p.catch(() => { });
+                } else if (result.window === 'miss' && sfxMiss) {
+                    const p = sfxMiss.play(); if (p && p.catch) p.catch(() => { });
+                }
+            } catch (e) {
+                // ignore audio play errors (autoplay policies etc.)
+            }
 
             // Trigger Character Animation
             if (result.window === 'hit' || result.window === 'delay') {
-                // Randomly choose left or right punch
                 const anim = Math.random() > 0.5 ? 'Kimu-punch-right' : 'Kimu-punch-left';
                 playCharacterAnimation(anim);
             }
 
-            launchThrowable(result.window);
+            // 3. CORRECCIÓN: Aquí llamamos a la REACCIÓN física de la bola
+            // (brincar si es delay, salir disparada si es hit, caer si es miss)
+            handleThrowableReaction(result.window);
         }
+    }
+    else {
+        // Input fue descartado: log motivo aproximado para debugging (fuera de ventana o sin nota cercana)
+        try {
+            const nearby = targetTempo ? Math.abs(targetTempo.timeMs - pressTimeGame) : null;
+            console.log('[handleInput] input ignored — nearbyDelta:', nearby, 'temposRemaining:', estadoActual.game.song.tempos.length);
+        } catch (e) { }
     }
 }
 
@@ -155,11 +222,9 @@ export function initRhythmScreen(): void {
     const root = document.getElementById('app-root');
     if (!root) return;
 
-    // Cancelar cualquier bucle anterior
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    // 1. Renderizar la vista inicial (el juego no empieza hasta que el usuario pulse "Iniciar Juego")
+
     root.innerHTML = '';
-    // Renderizamos con un estado dummy; la vista se actualizará cuando el juego empiece
     const dummyState = {
         game: { score: 0, precision: 100, currentTimeMs: 0, currentScene: 'Gameplay', isRunning: false, isPaused: false, isGameStoped: false, level: 1, song: SONG_TEST_LEVEL } as any,
         rhythm: { combo: 0, maxCombo: 0, score: 0, hits: { delay: 0, hit: 0, miss: 0 } } as any,
@@ -168,11 +233,9 @@ export function initRhythmScreen(): void {
     const view = renderRhythmView(dummyState);
     root.appendChild(view);
 
-    // Deshabilitar el botón de acción hasta que el juego empiece
     const actionButton = document.getElementById('action-button') as HTMLButtonElement | null;
     actionButton?.setAttribute('disabled', 'true');
 
-    // Navegación (volver al menú) siempre disponible
     view.querySelector('#btnBackToMenu')?.addEventListener('click', () => {
         if (estadoActual) {
             estadoActual = { ...estadoActual, game: { ...estadoActual.game, isGameStoped: true } };
@@ -181,21 +244,18 @@ export function initRhythmScreen(): void {
         document.dispatchEvent(new CustomEvent('navigateToMenu'));
     });
 
-    // Lógica para iniciar el juego y reproducir audio si existe
     const startButton = document.getElementById('start-button') as HTMLButtonElement | null;
     let audioEl: HTMLAudioElement | null = null;
 
     function startNow() {
+        // Load SFX for hits/delays/miss
+        try { loadSfx(); } catch (e) { /* ignore */ }
         const startTime = performance.now();
         estadoActual = initializeFullGame(SONG_TEST_LEVEL, startTime);
-        // Activar controles
         actionButton?.removeAttribute('disabled');
-        // Asignar Eventos (Input)
         document.getElementById('action-button')?.addEventListener('click', handleInput);
-        document.addEventListener('keydown', handleInput); // Soporte para barra espaciadora
-        // Ocultar botón de inicio
+        document.addEventListener('keydown', handleInput);
         if (startButton) startButton.style.display = 'none';
-        // Iniciar bucle
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
@@ -205,15 +265,12 @@ export function initRhythmScreen(): void {
         if (audioUrl) {
             audioEl = new Audio(audioUrl);
             audioEl.preload = 'auto';
-            // Intentar reproducir. Algunos navegadores bloquean autoplay sin interacción.
             const playPromise = audioEl.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
-                    // Reproducción iniciada, sincronizamos el inicio del juego
                     startNow();
                 }).catch(() => {
-                    // Autoplay bloqueado: pedir interacción del usuario
-                    alert('Para reproducir audio, haz clic en la página (gesto de usuario) y luego pulsa "Iniciar Juego" otra vez.');
+                    alert('Para reproducir audio, haz clic en la página y luego pulsa "Iniciar Juego" otra vez.');
                     if (startButton) startButton.disabled = false;
                     const resumeHandler = () => {
                         audioEl!.play().then(() => startNow()).catch(() => startNow());
@@ -222,11 +279,9 @@ export function initRhythmScreen(): void {
                     document.addEventListener('click', resumeHandler, { once: true } as any);
                 });
             } else {
-                // No hay promesa: iniciar igualmente
                 startNow();
             }
         } else {
-            // No hay audio: iniciar inmediatamente
             startNow();
         }
     }
