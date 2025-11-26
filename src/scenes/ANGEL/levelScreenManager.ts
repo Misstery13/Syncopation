@@ -6,16 +6,16 @@ import {
 
 // Función para cargar el CSS dinámicamente
 function loadLevelSelectionCSS(): void {
-  // Verificar si el CSS ya está cargado
-  const existingLink = document.querySelector('link[href*="stylesSelected.css"]');
+  // Verificar si el CSS global ya está cargado
+  const existingLink = document.querySelector('link[href*="assets/css/style.css"]');
   if (existingLink) {
     return; // Ya está cargado
   }
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  // Usar la ruta que funciona con el plugin de Vite
-  link.href = '/src/scenes/ANGEL/stylesSelected.css';
+  // Usar la hoja de estilos única ubicada en public/assets/css/style.css
+  link.href = '/assets/css/style.css';
   document.head.appendChild(link);
 }
 
