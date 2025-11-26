@@ -4,38 +4,23 @@
 /* Asegurar que app-root centre el contenido cuando contiene stats-container */
 #app-root.stats-view,
 .main-menu-content.stats-view {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 1rem !important;
-    min-height: auto !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
+    display: flex ;
+    align-items: center ;
+    justify-content: center ;
+    padding: 1rem ;
+    min-height: auto ;
+    background: transparent ;
+    border: none ;
+    box-shadow: none ;
 }
 
 @media (min-width: 768px) {
     #app-root.stats-view,
     .main-menu-content.stats-view {
-        padding: 2rem !important;
+        padding: 2rem ;
     }
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Press Start 2P', cursive;
-    background: linear-gradient(#fefe46, #5dc0de);
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    /* centra verticalmente */
-    justify-content: center;
-    /* centra horizontalmente */
-    overflow: hidden;
-    color: #fff;
-    position: relative;
-}
 
 .stats-container {
     display: flex;
