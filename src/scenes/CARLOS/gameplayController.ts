@@ -248,11 +248,7 @@ export function initRhythmScreen(): void {
     const actionButton = document.getElementById('action-button') as HTMLButtonElement | null;
     actionButton?.setAttribute('disabled', 'true');
 
-    document.getElementById('btnBackToMenu')?.addEventListener('click', () => {
-        if (estadoActual) estadoActual = { ...estadoActual, game: { ...estadoActual.game, isGameStoped: true } };
-        cancelAnimationFrame(animationFrameId);
-        document.dispatchEvent(new CustomEvent('navigateToMenu'));
-    });
+
 
     const startButton = document.getElementById('start-button') as HTMLButtonElement | null;
     let audioEl: HTMLAudioElement | null = null;
