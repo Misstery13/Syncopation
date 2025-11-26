@@ -25,8 +25,8 @@ export interface PhaserRendererConfig {
     height?: number;
 }
 
-// Variable interna para mantener la referencia al sprite
-let throwableSprite: Phaser.GameObjects.Sprite | null = null;
+// OPTIMIZACIÓN: Usaremos un Grupo para el Object Pooling
+let throwablesGroup: Phaser.GameObjects.Group | null = null;
 
 // --- FUNCIONES DE INICIALIZACIÓN ---
 
@@ -47,7 +47,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
     const existingCanvas = document.getElementById('gameCanvas');
     if (existingCanvas) existingCanvas.style.display = 'none';
 
-    // Configuración de defaults
+    // Defaults
     const spriteKey = cfg.spriteKey ?? 'player';
     const spritePath = cfg.spritePath ?? '/assets/images/sprites/Kimu-Idle.png';
     const frameW = cfg.frameWidth ?? 64;
@@ -80,7 +80,6 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
             // Crear animaciones
             for (const s of sprites) {
                 let count = s.frameCount ?? frameCount;
-                // Intento de inferir frames si no se pasan
                 try {
                     if (count == null && this.textures.exists(s.key)) {
                         const src = this.textures.get(s.key).getSourceImage();
@@ -119,16 +118,14 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
                 }
             });
 
-            // Crear Sprite Throwable (oculto inicialmente fuera de pantalla)
-            // Se asume que 'throwable' fue pasado en la config sprites
-            const throwableStartX = this.scale.width + 100;
-            throwableSprite = this.add.sprite(throwableStartX, y, 'throwable')
-                .setScale(0.4)
-                .setName('throwable')
-                .setVisible(false) // Invisible hasta que spawnThrowable lo llame
-                .setActive(false);
-
-            try { throwableSprite.setDepth(1001); } catch (e) { }
+            // --- OPTIMIZACIÓN DE MEMORIA: OBJECT POOL ---
+            // En lugar de instanciar uno por uno, creamos un grupo de reciclaje.
+            // Si el juego es muy rápido, 50 bolas deberían ser suficientes buffer.
+            throwablesGroup = this.add.group({
+                defaultKey: 'throwable',
+                maxSize: 50,
+                runChildUpdate: false
+            });
         },
         update: function (this: Phaser.Scene, _time: number, _delta: number) { },
     } as any;
@@ -171,150 +168,193 @@ export function playCharacterAnimation(animKey: string) {
 
 /**
  * 1. SPAWN (Aproximación)
- * Esta función debe llamarse desde el gameLoop para lanzar el objeto hacia el jugador.
+ * Utiliza Object Pooling para obtener una bola disponible.
  */
 export function spawnThrowable(duration: number = 600) {
     const win = window as any;
     const game: Phaser.Game | undefined = win.__phaserGame;
-    if (!game || !throwableSprite || !throwableSprite.scene) return;
+    if (!game || !throwablesGroup) return; // Si no hay grupo, no podemos hacer nada
 
-    const scene = throwableSprite.scene;
-
-    // Matar tweens anteriores para reiniciar
-    scene.tweens.killTweensOf(throwableSprite);
+    const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
+    if (!scene) return;
 
     // Configuración de posiciones
     const startX = scene.scale.width + 100; // Fuera derecha
-    // Objetivo: Posición del personaje (centro)
     const character = scene.children.getByName('character') as Phaser.GameObjects.Sprite;
     const endX = character ? character.x : scene.scale.width / 2;
     const baseY = character ? character.y : scene.scale.height / 2;
 
-    // Resetear estado del sprite
-    throwableSprite.setPosition(startX, baseY);
-    throwableSprite.setVisible(true);
-    throwableSprite.setActive(true);
-    throwableSprite.setAlpha(1);
-    throwableSprite.setRotation(0);
+    // --- OBTENER DEL POOL ---
+    // 'get' busca uno inactivo o crea uno nuevo si no hay libres y no excedimos el maxSize
+    const sprite = throwablesGroup.get(startX, baseY) as Phaser.GameObjects.Sprite;
 
-    // Iniciar animación visual del sprite (girando, brillando, etc)
-    const animKey = `${throwableSprite.texture.key}-anim`;
-    if (scene.anims.exists(animKey)) throwableSprite.play(animKey);
+    if (!sprite) {
+        console.warn('Pool de throwables lleno o no inicializado');
+        return;
+    }
+
+    // --- RESETEO PROFUNDO DE ESTADO ---
+    // Como el sprite es reciclado, puede tener propiedades "sucias" de su vida anterior (hit/miss)
+    sprite.setActive(true).setVisible(true);
+    sprite.setAlpha(1);
+    sprite.setScale(0.4);
+    sprite.setRotation(0);
+    sprite.clearTint(); // Importante: quitar el color del 'Hit' anterior
+    sprite.setDepth(1001);
+
+    // Matar cualquier tween viejo que pudiera haber quedado colgado (safety check)
+    scene.tweens.killTweensOf(sprite);
+
+    // Iniciar animación visual loop
+    const animKey = `${sprite.texture.key}-anim`;
+    if (scene.anims.exists(animKey)) sprite.play(animKey);
 
     // Tween de aproximación (Parábola simple)
     scene.tweens.add({
-        targets: throwableSprite,
+        targets: sprite,
         x: endX,
         duration: duration,
-        // Rotación continua mientras se acerca
-        rotation: { from: 0, to: Math.PI * 2 },
+        // Rotación completa 2 Vueltas (2 PI * 2)
+        rotation: { from: 0, to: Math.PI * 4 },
         onUpdate: (tween) => {
             const t = tween.progress;
-            // Pequeña curva parabólica para que no se vea plano
-            const height = -100; // Altura del arco
+            const height = -100;
+            // Ecuación parabólica
             const offsetY = height * (4 * t * (1 - t));
-            throwableSprite!.y = baseY + offsetY;
+            if (sprite.active) {
+                sprite.y = baseY + offsetY;
+            }
+        },
+        onComplete: () => {
+            // Si llega al final sin ser golpeada (el jugador no presionó nada)
+            // Simplemente la devolvemos al pool silenciosamente (o aplicamos fade out)
+            if (sprite.active) {
+                // Opción: Ocultar y matar inmediatamente
+                throwablesGroup?.killAndHide(sprite);
+            }
         }
     });
 }
 
 /**
  * 2. REACTION (Resultado)
- * Esta función debe llamarse desde el controlador de Input (handleInput)
- * cuando se determina el resultado (Hit, Delay, Miss).
+ * Busca la bola ACTIVA más cercana y aplica la física.
  */
 export function handleThrowableReaction(result: 'hit' | 'delay' | 'miss') {
-    if (!throwableSprite || !throwableSprite.scene) return;
-    const scene = throwableSprite.scene;
+    const win = window as any;
+    const game: Phaser.Game | undefined = win.__phaserGame;
+    if (!game || !throwablesGroup) return;
 
-    // IMPORTANTE: Detener el movimiento de aproximación inmediatamente
-    scene.tweens.killTweensOf(throwableSprite);
+    const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
+    if (!scene) return;
+
+    // Obtener todas las bolas activas del grupo
+    // getChildren() devuelve array de GameObjects, filtramos los activos y visibles
+    const activeThrowables = throwablesGroup.getChildren().filter(
+        (t: any) => t.active && t.visible
+    ) as Phaser.GameObjects.Sprite[];
+
+    if (activeThrowables.length === 0) return;
+
+    // Escoger el throwable más cercano al personaje
+    const character = scene.children.getByName('character') as Phaser.GameObjects.Sprite | undefined;
+    const refX = character ? character.x : (scene.scale.width / 2);
+
+    // Ordenar por distancia absoluta al personaje
+    activeThrowables.sort((a, b) => Math.abs(a.x - refX) - Math.abs(b.x - refX));
+
+    // El objetivo es el más cercano
+    const target = activeThrowables[0];
+
+    // Detener el movimiento de llegada
+    scene.tweens.killTweensOf(target);
 
     switch (result) {
         case 'delay':
-            performDelayReaction(scene, throwableSprite);
+            performDelayReaction(scene, target);
             break;
         case 'miss':
-            performMissReaction(scene, throwableSprite);
+            performMissReaction(scene, target);
             break;
         case 'hit':
-            performHitReaction(scene, throwableSprite);
+            performHitReaction(scene, target);
             break;
     }
 }
 
-// --- Lógica Privada de Reacciones Específicas ---
+// --- Helpers para reciclar ---
+
+function recycleSprite(sprite: Phaser.GameObjects.Sprite) {
+    if (throwablesGroup) {
+        throwablesGroup.killAndHide(sprite);
+    } else {
+        sprite.setVisible(false).setActive(false);
+    }
+}
+
+// --- Lógica Privada de Reacciones ---
 
 function performDelayReaction(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite) {
-    // "Delay": Brinco y caída libre usando CHAIN (Phaser 3.60+)
-
+    // "Delay": Brinco y caída libre
     scene.tweens.chain({
-        targets: sprite, // El objetivo por defecto para todos los tweens en la cadena
+        targets: sprite,
         tweens: [
-            // 1. Brinco hacia arriba (corto y rápido)
             {
                 y: sprite.y - 150,
                 x: sprite.x - 50,
                 duration: 200,
                 ease: 'Power1',
-                angle: sprite.angle + 45, // Usar angle en lugar de rotation para grados si prefieres, o rotation para radianes
+                angle: sprite.angle + 45,
             },
-            // 2. Caída libre (Gravedad)
             {
-                y: scene.scale.height + 100, // Cae fuera de la pantalla
+                y: scene.scale.height + 100, // Fuera pantalla abajo
                 x: sprite.x - 80,
                 duration: 500,
-                ease: 'Quad.In', // Aceleración de gravedad
-                onComplete: () => {
-                    sprite.setVisible(false).setActive(false);
-                }
+                ease: 'Quad.In',
+                onComplete: () => recycleSprite(sprite) // DEVOLVER AL POOL
             }
         ]
     });
 }
 
 function performMissReaction(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite) {
-    // "Miss": Simplemente cae por gravedad (triste)
+    // "Miss": Cae por gravedad
     scene.tweens.add({
         targets: sprite,
-        y: scene.scale.height + 100, // Suelo/Fuera
-        x: sprite.x - 30, // Inercia residual mínima
-        rotation: sprite.rotation + 0.5, // Rota perezosamente
+        y: scene.scale.height + 100,
+        x: sprite.x - 30,
+        rotation: sprite.rotation + 0.5,
         duration: 600,
-        ease: 'Bounce.Out', // Puede rebotar un poco si definimos un suelo, o simplemente caer
-        onComplete: () => {
-            sprite.setVisible(false).setActive(false);
-        }
+        ease: 'Bounce.Out',
+        onComplete: () => recycleSprite(sprite) // DEVOLVER AL POOL
     });
 }
 
 function performHitReaction(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite) {
-    // "Hit": Sale disparada hacia la DERECHA (rebote)
+    // "Hit": Rebote hacia la derecha
 
-    // Calcular vector aleatorio hacia arriba o abajo
     const directionY = Math.random() > 0.5 ? -1 : 1;
+    const distanceX = 600 + Math.random() * 200;
+    const distanceY = 300 + Math.random() * 200;
 
-    // Fuerza horizontal positiva para ir a la derecha
-    const distanceX = 600 + Math.random() * 200; // Agregué un poco de variación aleatoria también
-    const distanceY = 300 + Math.random() * 200; // Fuerza vertical aleatoria
-
-    // CORRECCIÓN AQUÍ: Sumamos (+) distanceX para ir a la derecha
     const targetX = sprite.x + distanceX;
     const targetY = sprite.y + (distanceY * directionY);
 
-    // Efecto de impacto visual
-    sprite.setTint(0xffaa00); // Flash amarillo momentáneo
-    setTimeout(() => sprite.clearTint(), 100);
+    // Efecto visual
+    sprite.setTint(0xffaa00);
+    // Nota: No usamos setTimeout aquí porque puede ejecutarse después de que el sprite se haya reciclado
+    // Mejor usar un tween de color o un timer de escena, pero por simplicidad:
+    scene.time.delayedCall(100, () => {
+        if (sprite.active) sprite.clearTint();
+    });
 
     scene.tweens.add({
         targets: sprite,
         x: targetX,
         y: targetY,
-        angle: 720, // Giro rápido
-        duration: 500, // Un poco más lento para verla volar de regreso
-        ease: 'Cubic.Out', // Sale disparado rápido y desacelera
-        onComplete: () => {
-            sprite.setVisible(false).setActive(false);
-        }
+        angle: 720,
+        duration: 500,
+        ease: 'Cubic.Out',
+        onComplete: () => recycleSprite(sprite) // DEVOLVER AL POOL
     });
 }

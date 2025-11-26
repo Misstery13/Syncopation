@@ -16,7 +16,7 @@ export function initPhaserForTest() {
             frameHeight: 64,
             frameRate: 10,
             scale: 5,
-            x: 400, // Center in 800x600 container
+            x: 100, // Center in 800x600 container
             y: 300
         });
         console.log('Phaser initialized successfully.');

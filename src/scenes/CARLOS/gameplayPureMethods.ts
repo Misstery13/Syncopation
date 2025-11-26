@@ -155,7 +155,7 @@ export function processPlayerInput(
     }, currentState.game.song.tempos[0]);
 
     // Si no hay notas restantes o el input está muy lejos, descartar el input (devolver el estado sin cambios)
-    const MAX_INPUT_TOLERANCE = JUDGEMENT_WINDOWS['miss'].ms + 100; // Tolerancia extra
+    const MAX_INPUT_TOLERANCE = JUDGEMENT_WINDOWS['miss'].ms + 0; // Tolerancia extra
     if (!targetTempo || Math.abs(targetTempo.timeMs - pressTimeMs) > MAX_INPUT_TOLERANCE) {
         return currentState;
     }
