@@ -69,9 +69,18 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
  */
 export function initStatsScreen(): void {
   const root = document.getElementById('app-root'); // o tu contenedor principal
-  if (!root) return;
+  if (!root) {
+    console.error('[statsController] app-root not found');
+    return;
+  }
 
-  const stats = loadPlayerStats();
-  root.innerHTML = ''; // limpia contenido anterior
-  root.appendChild(renderStatsView(stats));
+  try {
+    console.debug('[statsController] Loading player stats');
+    const stats = loadPlayerStats();
+    root.innerHTML = ''; // limpia contenido anterior
+    root.appendChild(renderStatsView(stats));
+    console.debug('[statsController] Stats screen rendered');
+  } catch (err) {
+    console.error('[statsController] Error rendering stats screen', err);
+  }
 }

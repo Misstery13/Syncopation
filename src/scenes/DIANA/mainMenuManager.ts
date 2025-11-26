@@ -173,8 +173,8 @@ export class MainMenuManager {
       this.authContext.mode === 'guest'
         ? 'Sesión como invitado'
         : this.authContext.mode === 'register'
-        ? 'Cuenta recién creada'
-        : 'Sesión iniciada';
+          ? 'Cuenta recién creada'
+          : 'Sesión iniciada';
 
     this.subtitle.textContent = `${modeLabel}: ${username}`;
   }
@@ -295,8 +295,20 @@ export class MainMenuManager {
   private openCarlosStats(): void {
     this.detachKeyboard();
     this.clearContent();
-    // Ocultar el panel del menú lateral para mostrar solo las estadísticas
-    this.menuPanel.style.display = 'none';
+    // Ocultar sólo los elementos del panel lateral (dejar `#app-root` visible)
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        if (el.id === 'app-root') {
+          el.style.display = ''; // mantener visible
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    } catch (err) {
+      console.warn('[MainMenuManager] Could not selectively hide children of menuPanel, falling back to hide whole panel', err);
+      this.menuPanel.style.display = 'none';
+    }
     // Hacer que el contenido ocupe todo el espacio y centre el contenido
     this.appRoot.style.width = '100%';
     this.appRoot.style.maxWidth = '100%';
@@ -307,7 +319,13 @@ export class MainMenuManager {
     this.appRoot.style.padding = '';
     // Agregar clase para estilos CSS específicos
     this.appRoot.classList.add('stats-view');
-    initStatsScreen();
+    try {
+      console.debug('[MainMenuManager] Opening Carlos stats screen');
+      initStatsScreen();
+      console.debug('[MainMenuManager] initStatsScreen() completed');
+    } catch (err) {
+      console.error('[MainMenuManager] Error calling initStatsScreen', err);
+    }
   }
 
   private openSaidCredits(): void {
@@ -351,7 +369,15 @@ export class MainMenuManager {
   private resumeFromExternalNavigation(): void {
     if (!this.authContext) return;
     // Restaurar el panel del menú cuando se regresa
-    this.menuPanel.style.display = 'flex';
+    // Restaurar visibilidad de los elementos del panel lateral
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        el.style.display = '';
+      });
+    } catch (err) {
+      this.menuPanel.style.display = 'flex';
+    }
     // Restaurar los estilos del contenido
     this.appRoot.style.width = '';
     this.appRoot.style.maxWidth = '';

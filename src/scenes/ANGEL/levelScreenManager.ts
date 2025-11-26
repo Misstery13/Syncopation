@@ -1,6 +1,6 @@
 // src/levelSelectManager.ts
-import { 
-  createLevelSelectionView, 
+import {
+  createLevelSelectionView,
   LevelSelection
 } from './levelScreen.ts';
 
@@ -9,6 +9,7 @@ function loadLevelSelectionCSS(): void {
   // Verificar si el CSS global ya está cargado
   const existingLink = document.querySelector('link[href*="assets/css/style.css"]');
   if (existingLink) {
+    console.debug('[LevelSelectManager] level selection CSS already loaded');
     return; // Ya está cargado
   }
 
@@ -17,13 +18,14 @@ function loadLevelSelectionCSS(): void {
   // Usar la hoja de estilos única ubicada en public/assets/css/style.css
   link.href = '/assets/css/style.css';
   document.head.appendChild(link);
+  console.debug('[LevelSelectManager] level selection CSS appended:', link.href);
 }
 
 // Interfaz para la instancia de la vista
 interface LevelSelectViewInstance {
-    show: () => void;
-    hide: () => void;
-    destroy: () => void;
+  show: () => void;
+  hide: () => void;
+  destroy: () => void;
 }
 
 /**
@@ -33,53 +35,54 @@ interface LevelSelectViewInstance {
  * - RECHAZA si el usuario elige "Volver".
  */
 export class LevelSelectManager {
-    private view: LevelSelectViewInstance;
-    
-    private resolvePromise!: (selection: LevelSelection) => void;
-    private rejectPromise!: (reason?: any) => void;
+  private view: LevelSelectViewInstance;
 
-    constructor(playerLevel: number) {
-        // Creamos la vista, pasándole nuestros métodos internos como callbacks
-        this.view = createLevelSelectionView(
-            playerLevel,
-            {
-              // Pasamos las funciones que la vista debe llamar
-              onPlay: (selection) => this.onPlay(selection),
-              onBack: () => this.onBack()
-            }
-        );
-    }
+  private resolvePromise!: (selection: LevelSelection) => void;
+  private rejectPromise!: (reason?: any) => void;
 
-    /**
-     * Muestra la pantalla y devuelve una promesa.
-     */
-    public show(): Promise<LevelSelection> {
-        return new Promise((resolve, reject) => {
-            // Cargar el CSS antes de mostrar la vista
-            loadLevelSelectionCSS();
-            
-            // Guarda las funciones de la promesa
-            this.resolvePromise = resolve;
-            this.rejectPromise = reject;
-            
-            // Muestra la vista
-            this.view.show();
-        });
-    }
+  constructor(playerLevel: number) {
+    // Creamos la vista, pasándole nuestros métodos internos como callbacks
+    this.view = createLevelSelectionView(
+      playerLevel,
+      {
+        // Pasamos las funciones que la vista debe llamar
+        onPlay: (selection) => this.onPlay(selection),
+        onBack: () => this.onBack()
+      }
+    );
+  }
 
-    /**
-     * Callback interno. Se llama cuando la VISTA notifica "Jugar".
-     */
-    private onPlay(selection: LevelSelection): void {
-        this.view.hide();
-        this.resolvePromise(selection); // Resuelve la promesa
-    }
+  /**
+   * Muestra la pantalla y devuelve una promesa.
+   */
+  public show(): Promise<LevelSelection> {
+    return new Promise((resolve, reject) => {
+      // Cargar el CSS antes de mostrar la vista
+      console.debug('[LevelSelectManager] show() called - loading CSS and showing view');
+      loadLevelSelectionCSS();
 
-    /**
-     * Callback interno. Se llama cuando la VISTA notifica "Volver".
-     */
-    private onBack(): void {
-        this.view.hide();
-        this.rejectPromise('User navigated back'); // Rechaza la promesa
-    }
+      // Guarda las funciones de la promesa
+      this.resolvePromise = resolve;
+      this.rejectPromise = reject;
+
+      // Muestra la vista
+      this.view.show();
+    });
+  }
+
+  /**
+   * Callback interno. Se llama cuando la VISTA notifica "Jugar".
+   */
+  private onPlay(selection: LevelSelection): void {
+    this.view.hide();
+    this.resolvePromise(selection); // Resuelve la promesa
+  }
+
+  /**
+   * Callback interno. Se llama cuando la VISTA notifica "Volver".
+   */
+  private onBack(): void {
+    this.view.hide();
+    this.rejectPromise('User navigated back'); // Rechaza la promesa
+  }
 }
