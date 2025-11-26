@@ -90,7 +90,7 @@ h1.game-title {
     width: 8px;
     background: #FF9800;
     border: 2px solid #fff;
-    border-radius: 4px;
+    border-radius: 0px;
     animation: equalize 1s infinite alternate;
 }
 
