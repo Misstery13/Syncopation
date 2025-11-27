@@ -22,7 +22,7 @@ const menuMusic = new Audio('assets/audio/test.mp3');
 menuMusic.loop = true;
 menuMusic.volume = 0.5; // Default volume
 
-// Attempt to play immediately
+// Intentar reproducir de inmediato
 menuMusic.play().catch(() => {
   console.log('Autoplay blocked. Waiting for user interaction to play menu music.');
   const playOnInteraction = () => {
@@ -61,6 +61,25 @@ window.addEventListener('startGame', () => {
   game.start();
 });
 
+// --- Helper para Pantalla Completa ---
+function applyFullscreen(enabled: boolean) {
+  const elem = document.documentElement;
+
+  if (enabled) {
+    if (!document.fullscreenElement && elem.requestFullscreen) {
+      elem.requestFullscreen().catch((e) => {
+        console.warn('No se pudo activar pantalla completa', e);
+      });
+    }
+  } else {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch((e) => {
+        console.warn('No se pudo salir de pantalla completa', e);
+      });
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const modalEl = document.getElementById('configModal');
   const saveBtn = document.getElementById('saveConfigBtn') as HTMLButtonElement | null;
@@ -95,8 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof persisted.fullscreen === 'boolean') {
       fullscreen.checked = persisted.fullscreen;
+      // Aplicar estado de pantalla completa guardado
+      applyFullscreen(persisted.fullscreen);
     }
   }
+
+  // Si el usuario sale con ESC, sincronizamos la casilla
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fullscreen.checked = isFs;
+  });
 
   saveBtn.addEventListener('click', () => {
     const volumeValue = Number.parseInt(volume.value, 10);
@@ -124,6 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnSound.volume = normalized;
     btnSound.muted = muted;
+
+    // Aplicar / quitar pantalla completa según la casilla
+    applyFullscreen(settings.fullscreen);
 
     modal.hide();
   });
