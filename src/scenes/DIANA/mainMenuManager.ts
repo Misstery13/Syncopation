@@ -276,6 +276,9 @@ export class MainMenuManager {
 
   private openAngelLevels(): void {
     this.detachKeyboard();
+    // Ocultar el panel del menú principal para evitar superposición
+    this.menuPanel.style.display = 'none';
+
     const level = this.authContext?.user?.progress?.level ?? 1;
     const manager = new LevelSelectManager(level);
 
@@ -289,13 +292,16 @@ export class MainMenuManager {
           window.location.href = target;
         } catch (e) {
           // Fallback: mostrar mensaje en UI
-          this.renderPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
+          this.showPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
         }
       })
       .catch(() => {
-        this.renderPlaceholder('Selección cancelada. Puedes explorar otra opción.');
+        // Selección cancelada, simplemente volvemos al menú principal
+        console.debug('[MainMenuManager] Level selection cancelled');
       })
       .finally(() => {
+        // Restaurar el panel del menú principal
+        this.menuPanel.style.display = 'flex';
         if (this.isActive) this.attachKeyboard();
       });
   }
