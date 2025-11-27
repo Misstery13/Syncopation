@@ -135,6 +135,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
         width: cfg.width ?? window.innerWidth,
         height: cfg.height ?? window.innerHeight,
         parent: parentId,
+        pixelArt: true,
         backgroundColor: '#000000',
         scene,
         transparent: true,

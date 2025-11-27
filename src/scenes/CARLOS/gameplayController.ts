@@ -5,11 +5,11 @@ import { Tempo } from '../../types/index';
 import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
-import { updateStatsFromGame, initPlayerStats, addHits, addMisses } from './statsPureMethods';
+import { updateStatsFromGame, initPlayerStats } from './statsPureMethods';
 import { setPlayerStats, initStatsScreen } from './statsController';
 
 // --- CONFIGURACIÓN ---
-const THROW_TRAVEL_MS = 2000;
+const THROW_TRAVEL_MS = 3000;
 const INPUT_SEARCH_WINDOW = 500;
 
 // --- ESTADO MUTABLE (DEL CONTROLADOR) ---
@@ -39,10 +39,10 @@ let sfxSpawn: HTMLAudioElement | null = null;
 
 function loadSfx() {
     try {
-        sfxHit = new Audio('/assets/audio/acierto.mp3'); sfxHit.volume = 0.7;
-        sfxDelay = new Audio('/assets/audio/delay.mp3'); sfxDelay.volume = 0.7;
-        sfxMiss = new Audio('/assets/audio/miss.mp3'); sfxMiss.volume = 0.7;
-        sfxSpawn = new Audio('/assets/audio/spawn.mp3'); sfxSpawn.volume = 0.5;
+        sfxHit = new Audio('/assets/audio/kick-yarn-ball.mp3'); sfxHit.volume = 0.7;
+        sfxDelay = new Audio('/assets/audio/meow.mp3'); sfxDelay.volume = 0.7;
+        sfxMiss = new Audio('/assets/audio/miss.mp3'); sfxMiss.volume = 0.5;
+        sfxSpawn = new Audio('/assets/audio/boing.mp3'); sfxSpawn.volume = 0.5;
     } catch (e) { console.warn('Audio Error', e); }
 }
 
@@ -172,28 +172,28 @@ function gameLoop(timestamp: DOMHighResTimeStamp) {
         // Marcar como detenido para evitar repetir este bloque
         estadoActual = setFullGameStoped(estadoActual);
 
-        try {
-            // Cargar estadísticas actuales (si existen) o inicializar
-            const raw = localStorage.getItem('playerStats');
-            const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
+        setTimeout(() => {
 
-            // Calcular estadísticas actualizadas usando la función pura
-            const updatedStats = updateStatsFromGame(currentStats, estadoActual.game);
 
-            // Añadir el acumulado de aciertos y fallos usando las funciones puras
-            const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
-            const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
+            try {
+                // Cargar estadísticas actuales (si existen) o inicializar
+                const raw = localStorage.getItem('playerStats');
+                const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
 
-            let finalStats = addHits(updatedStats, successfulHits);
-            finalStats = addMisses(finalStats, missedHits);
+                // Calcular aciertos/fallos del nivel actual
+                const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
+                const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
 
-            // Persistir y mostrar la pantalla de estadísticas
-            setPlayerStats(finalStats);
-            initStatsScreen();
-        } catch (e) {
-            console.warn('Error persisting/showing stats', e);
-        }
+                // Calcular estadísticas actualizadas (incluye añadir hits/misses y marca perfectos)
+                const finalStats = updateStatsFromGame(currentStats, estadoActual.game, successfulHits, missedHits);
 
+                // Persistir y mostrar la pantalla de estadísticas
+                setPlayerStats(finalStats);
+                initStatsScreen();
+            } catch (e) {
+                console.warn('Error persisting/showing stats', e);
+            }
+        }, 5000);
         // Detener el bucle de animación
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         return;

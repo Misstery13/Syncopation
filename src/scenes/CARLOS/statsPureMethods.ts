@@ -95,13 +95,35 @@ export function incrementGamesPlayed(stats: PlayerStats): PlayerStats {
  * Actualiza las estadísticas globales del jugador al final de una canción.
  * (Usa los datos del GameState actual)
  */
-export function updateStatsFromGame(stats: PlayerStats, game: GameState): PlayerStats {
+export function updateStatsFromGame(
+    stats: PlayerStats,
+    game: GameState,
+    hitsCount: number = 0,
+    missesCount: number = 0
+): PlayerStats {
     let updated = addTotalScore(stats, game.score);
     updated = addPlayTime(updated, game.currentTimeMs);
-    if (game.precision >= 100) updated = addPerfectLevel(updated);
-    // Aquí podrías usar propiedades como game.hits, game.misses si las tienes
-    updated = addHits(updated, stats.totalHits);
-    updated = addMisses(updated, stats.totalMisses);
+
+    // Calcular precision usando la función dedicada
+    const computedPrecision = computePrecision(hitsCount, missesCount, typeof game.precision === 'number' ? game.precision : 0);
+
+    // Si la precision calculada es >= 100 (o el game.precision ya lo era), marcar nivel perfecto
+    if (computedPrecision >= 100) updated = addPerfectLevel(updated);
+
+    // Añadir los contadores de aciertos/fallos al acumulado global
+    if (hitsCount > 0) updated = addHits(updated, hitsCount);
+    if (missesCount > 0) updated = addMisses(updated, missesCount);
 
     return incrementGamesPlayed(updated);
+}
+
+/**
+ * Calcula la precisión del jugador a partir de aciertos y fallos.
+ * Si no hay intentos, devuelve `fallbackPrecision`.
+ * Retorna un `number` redondeado (0..100).
+ */
+export function computePrecision(hitsCount: number, missesCount: number, fallbackPrecision: number = 0): number {
+    const total = hitsCount + missesCount;
+    if (total <= 0) return Math.round(fallbackPrecision || 0);
+    return Math.round((hitsCount / total) * 100);
 }
