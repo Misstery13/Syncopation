@@ -1,8 +1,6 @@
 import { LevelSelectManager } from '../ANGEL/levelScreenManager';
 import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
-import { initRhythmScreen } from '../CARLOS/gameplayController';
-import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
 import type { User } from '../../types';
 
 import '../ANGEL/stylesSelected.css';

@@ -1,5 +1,3 @@
-// Luego se creará una carpeta para controladores específicos para este archivo.
-
 // src/CARLOS/statsController.ts
 import { initPlayerStats } from './statsPureMethods';
 import { PlayerStats } from './statsTypes';

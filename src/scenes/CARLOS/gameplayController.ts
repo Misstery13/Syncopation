@@ -1,6 +1,5 @@
 console.log('gameplayController module executing...');
 import { FullGameState } from './gameplayTypes';
-// Importamos el tipo Tempo para usarlo en la firma de la función
 import { Tempo } from '../../types/index';
 import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from './gameplayPureMethods';
 import { SONG_TEST_LEVEL } from './gameplayTypes';
@@ -9,16 +8,20 @@ import { updateStatsFromGame, initPlayerStats } from './statsPureMethods';
 import { setPlayerStats, initStatsScreen } from './statsController';
 
 // --- CONFIGURACIÓN ---
-const THROW_TRAVEL_MS = 3000;
-const INPUT_SEARCH_WINDOW = 500;
+const THROW_TRAVEL_MS = 1200;
+const INPUT_SEARCH_WINDOW = 200;
+
+// AJUSTE DE RANGO:
+// Valor negativo = El jugador debe golpear ANTES de que llegue al cuerpo (distancia de brazo).
+// -50ms suele ser una buena distancia visual. Ajusta este número según necesites.
+const HIT_OFFSET_MS = -60;
 
 // --- ESTADO MUTABLE (DEL CONTROLADOR) ---
 let estadoActual: FullGameState;
 let animationFrameId: number;
+let isFinishing: boolean = false; // Nueva bandera para evitar el congelamiento
 
 // Set para rastrear IDs de notas que ya lanzamos visualmente (Spawn).
-// Usamos esto porque la nota sigue existiendo en 'tempos' mientras viaja,
-// y no queremos lanzarla dos veces.
 const spawnedTempoIds = new Set<number>();
 
 // Optimizacion: Caché de elementos DOM
@@ -99,39 +102,22 @@ function cacheDOMElements() {
     };
 }
 
-/**
- * Lógica de Spawning adaptada a Programación Funcional.
- * Recibe 'readonly Tempo[]' porque no lo modificamos, solo leemos.
- */
 function checkSpawns(currentTimeMs: number, songTempos: readonly Tempo[]) {
-    // Como tus funciones puras (tick/processInput) ELIMINAN las notas del array,
-    // las notas pendientes siempre están al principio de la lista.
-    // Iteramos solo las primeras notas para ver si toca lanzarlas.
-
-    // Checkeamos las primeras 5 notas por si hay ráfagas muy rápidas
     const lookAheadCount = 5;
 
     for (let i = 0; i < Math.min(songTempos.length, lookAheadCount); i++) {
         const nextTempo = songTempos[i];
-
-        // Si ya la lanzamos, pasamos a la siguiente
         if (spawnedTempoIds.has(nextTempo.id)) continue;
 
         const timeToImpact = nextTempo.timeMs - currentTimeMs;
 
-        // Si estamos en rango de lanzamiento (faltan 600ms o menos)
         if (timeToImpact <= THROW_TRAVEL_MS) {
-            // Evitar lanzar notas que ya pasaron hace mucho (glitch visual)
             if (timeToImpact > -100) {
                 spawnThrowable(THROW_TRAVEL_MS);
                 playSfx('spawn');
-
-                // Marcamos como lanzada para no duplicar
                 spawnedTempoIds.add(nextTempo.id);
             }
         } else {
-            // Como están ordenadas por tiempo, si esta nota está lejos, 
-            // las siguientes también. Podemos salir del bucle.
             break;
         }
     }
@@ -144,9 +130,10 @@ function updateVisuals(state: FullGameState) {
     if (uiCache.remaining) uiCache.remaining.textContent = state.game.song.tempos.length.toString();
 
     if (uiCache.indicator && state.game.song.tempos.length > 0) {
-        // Indicador visual basado en la primera nota disponible
+        // Aplicamos también el offset visual para que el indicador coincida con el golpe lógico
         const activeNote = state.game.song.tempos[0];
-        const diff = activeNote.timeMs - state.game.currentTimeMs;
+        // Calculamos diff respecto al punto de golpeo deseado (con offset)
+        const diff = (activeNote.timeMs + HIT_OFFSET_MS) - state.game.currentTimeMs;
 
         if (diff < 500 && diff > -200) {
             uiCache.indicator.style.backgroundColor = `rgba(0, 0, 255, ${1 - (Math.abs(diff) / 500)})`;
@@ -159,56 +146,67 @@ function updateVisuals(state: FullGameState) {
 }
 
 function gameLoop(timestamp: DOMHighResTimeStamp) {
+    // Si el juego está pausado por menú, salimos.
+    // Si isGameStoped es true, significa que YA terminamos todo el proceso (incluido el delay final).
     if (estadoActual.game.isGameStoped || estadoActual.game.isPaused) return;
 
     const currentSongTimeMs = Math.round(timestamp - estadoActual.gameStartTime);
 
     // 1. Estado Lógico (Puro)
-    // 'tick' devuelve un nuevo estado donde las notas "missed" ya han sido eliminadas del array
     estadoActual = tick(estadoActual, currentSongTimeMs);
 
-    // Detectar fin de la canción (sin notas pendientes) y manejar cierre de nivel
-    if (estadoActual.game.song.tempos.length === 0 && !estadoActual.game.isGameStoped) {
-        // Marcar como detenido para evitar repetir este bloque
-        estadoActual = setFullGameStoped(estadoActual);
+    // Detectar fin de la canción (sin notas pendientes)
+    // SOLUCIÓN BLOQUEO: Usamos la bandera 'isFinishing' para entrar aquí solo una vez,
+    // pero NO detenemos el requestAnimationFrame todavía.
+    if (estadoActual.game.song.tempos.length === 0 && !isFinishing) {
 
+        isFinishing = true; // Marcamos que estamos en la secuencia final
+
+        // Esperamos 3 segundos antes de detener realmente el motor
         setTimeout(() => {
-
-
-            try {
-                // Cargar estadísticas actuales (si existen) o inicializar
-                const raw = localStorage.getItem('playerStats');
-                const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
-
-                // Calcular aciertos/fallos del nivel actual
-                const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
-                const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
-
-                // Calcular estadísticas actualizadas (incluye añadir hits/misses y marca perfectos)
-                const finalStats = updateStatsFromGame(currentStats, estadoActual.game, successfulHits, missedHits);
-
-                // Persistir y mostrar la pantalla de estadísticas
-                setPlayerStats(finalStats);
-                initStatsScreen();
-            } catch (e) {
-                console.warn('Error persisting/showing stats', e);
-            }
-        }, 5000);
-        // Detener el bucle de animación
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        return;
+            finishGameLogic();
+        }, 3000);
     }
 
     // 2. Lógica de Spawning
     checkSpawns(currentSongTimeMs, estadoActual.game.song.tempos);
 
     // 3. Renderizado
+    // El renderizado sigue ocurriendo incluso si isFinishing es true,
+    // permitiendo ver la animación del último golpe.
     updateVisuals(estadoActual);
 
     animationFrameId = requestAnimationFrame(gameLoop);
 }
 
+// Función helper para la lógica final
+function finishGameLogic() {
+    // Aquí sí detenemos el juego formalmente
+    estadoActual = setFullGameStoped(estadoActual);
+
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+    try {
+        const raw = localStorage.getItem('playerStats');
+        const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
+
+        const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
+        const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
+
+        const finalStats = updateStatsFromGame(currentStats, estadoActual.game, successfulHits, missedHits);
+
+        setPlayerStats(finalStats);
+        initStatsScreen();
+    } catch (e) {
+        console.warn('Error persisting/showing stats', e);
+    }
+}
+
 function handleInput(event: MouseEvent | KeyboardEvent) {
+    // Si estamos en la secuencia de finalización (esperando el timeout), bloqueamos input extra
+    // para no golpear "al aire", aunque si quieres permitirlo, quita esta línea.
+    if (isFinishing) return;
+
     if (event instanceof KeyboardEvent) {
         if (event.code !== 'Space') return;
         event.preventDefault();
@@ -217,18 +215,19 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
     const pressTimeAbsolute = performance.now();
     const pressTimeGame = Math.round(pressTimeAbsolute - estadoActual.gameStartTime);
 
-    // Búsqueda de nota objetivo:
-    // Al ser un array que se reduce, la nota objetivo suele ser la primera (tempos[0])
-    // a menos que el jugador se adelante mucho a la segunda.
-    // Buscamos en las primeras 3 para cubrir "double hits" rápidos.
-
     let bestCandidate = undefined;
     let minDiff = Infinity;
     const searchLimit = Math.min(estadoActual.game.song.tempos.length, 3);
 
     for (let i = 0; i < searchLimit; i++) {
         const tempo = estadoActual.game.song.tempos[i];
-        const diff = Math.abs(tempo.timeMs - pressTimeGame);
+
+        // SOLUCIÓN RANGO: Calculamos la diferencia aplicando el OFFSET.
+        // Si HIT_OFFSET_MS es -50, y la nota es a los 1000ms:
+        // El "target" real se vuelve 950ms.
+        // Si pulsamos en 950ms, (1000 + (-50)) - 950 = 0 diff. PERFECTO.
+        const effectiveTargetTime = tempo.timeMs + HIT_OFFSET_MS;
+        const diff = Math.abs(effectiveTargetTime - pressTimeGame);
 
         if (diff <= INPUT_SEARCH_WINDOW && diff < minDiff) {
             minDiff = diff;
@@ -236,14 +235,19 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
         }
     }
 
-    // Procesamos el input
-    // 'processPlayerInput' devuelve nuevo estado con la nota golpeada ELIMINADA del array
+    // Procesamos el input. Nota: processPlayerInput elimina la nota del array.
+    // Pasamos pressTimeGame normal, ya que la lógica interna solo necesita saber cuándo pulsaste para borrar.
     const nuevoEstado = processPlayerInput(estadoActual, pressTimeGame);
 
     if (nuevoEstado !== estadoActual) {
         // Feedback
-        const targetTime = bestCandidate ? bestCandidate.timeMs : pressTimeGame;
-        const result = evaluateHit(targetTime, pressTimeGame);
+        // Aquí ajustamos qué tiempo pasamos a evaluateHit para que el cálculo de "Perfect/Miss"
+        // tenga en cuenta tu offset de "brazo estirado".
+
+        const rawTargetTime = bestCandidate ? bestCandidate.timeMs : pressTimeGame;
+        const targetTimeWithOffset = rawTargetTime + HIT_OFFSET_MS;
+
+        const result = evaluateHit(targetTimeWithOffset, pressTimeGame);
 
         playSfx(result.window);
 
@@ -256,6 +260,7 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
 
         if (uiCache.log) {
             const cls = result.window === 'hit' ? 'perfect' : result.window === 'delay' ? 'ok' : 'miss';
+            // Mostramos el offset real para debuggear si quieres
             uiCache.log.insertAdjacentHTML('afterbegin',
                 `<div class="${cls}">${result.window.toUpperCase()} (${result.deltaMs}ms)</div>`
             );
@@ -273,6 +278,10 @@ export function initRhythmScreen(): void {
 
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
+    // Resetear banderas
+    isFinishing = false;
+    spawnedTempoIds.clear();
+
     const dummyState = initializeFullGame(SONG_TEST_LEVEL, 0);
 
     root.innerHTML = '';
@@ -282,8 +291,6 @@ export function initRhythmScreen(): void {
     const actionButton = document.getElementById('action-button') as HTMLButtonElement | null;
     actionButton?.setAttribute('disabled', 'true');
 
-
-
     const startButton = document.getElementById('start-button') as HTMLButtonElement | null;
     let audioEl: HTMLAudioElement | null = null;
 
@@ -291,8 +298,9 @@ export function initRhythmScreen(): void {
         loadSfx();
         const startTime = performance.now();
 
-        // Limpiamos el set de spawns al reiniciar
+        // Limpiamos el set de spawns y bandera de finalización
         spawnedTempoIds.clear();
+        isFinishing = false;
 
         estadoActual = initializeFullGame(SONG_TEST_LEVEL, startTime);
 
