@@ -2,6 +2,7 @@ import { Game } from './core/game';
 import LoginManager from './ui/loginManager';
 import { MainMenuManager } from './scenes/DIANA/mainMenuManager';
 
+// --- 1. INICIALIZACIÓN DEL LOGIN Y MENÚ ---
 let loginManager: LoginManager;
 const mainMenu = new MainMenuManager({
   onLogout: () => {
@@ -17,14 +18,14 @@ loginManager = new LoginManager({
 
 loginManager.init();
 
-// --- Main Menu Soundtrack Logic ---
+// --- 2. SISTEMA DE AUDIO (Música y Efectos) ---
 const menuMusic = new Audio('assets/audio/test.mp3');
 menuMusic.loop = true;
-menuMusic.volume = 0.5; // Default volume
+menuMusic.volume = 0.5;
 
-// Attempt to play immediately
+// Intentar reproducir inmediatamente (con fallback si el navegador bloquea autoplay)
 menuMusic.play().catch(() => {
-  console.log('Autoplay blocked. Waiting for user interaction to play menu music.');
+  console.log('Autoplay bloqueado. Esperando interacción del usuario.');
   const playOnInteraction = () => {
     menuMusic.play();
     document.removeEventListener('click', playOnInteraction);
@@ -34,79 +35,111 @@ menuMusic.play().catch(() => {
   document.addEventListener('keydown', playOnInteraction);
 });
 
-// --- Button Sound Logic ---
 const btnSound = new Audio('assets/audio/sfx/btnSound.mp3');
 btnSound.volume = 0.5;
 
+// Manejo global de sonidos de botones
 document.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;
-  // Check if the clicked element or its parent is a button or menu option
   const clickable = target.closest('button, .btn, .menu-option');
 
   if (clickable) {
-    // Clone the node to allow overlapping sounds if clicked rapidly
     const soundClone = btnSound.cloneNode() as HTMLAudioElement;
     soundClone.volume = btnSound.volume;
-    soundClone.play().catch(e => console.warn('Button sound blocked', e));
+    soundClone.play().catch(e => console.warn('Sonido bloqueado', e));
   }
 });
 
+// Evento global para iniciar el juego
 window.addEventListener('startGame', () => {
-  // Stop menu music when game starts
   menuMusic.pause();
   menuMusic.currentTime = 0;
-
   const game: Game = new Game();
   game.start();
 });
 
+// --- 3. LÓGICA DEL DOM (Configuración y Navegación UI) ---
 document.addEventListener('DOMContentLoaded', () => {
+  
+  // A. Referencias a elementos del DOM
   const modalEl = document.getElementById('configModal');
   const saveBtn = document.getElementById('saveConfigBtn') as HTMLButtonElement | null;
   const volume = document.getElementById('volumeRange') as HTMLInputElement | null;
   const difficulty = document.getElementById('difficultySelect') as HTMLSelectElement | null;
   const fullscreen = document.getElementById('fullscreenToggle') as HTMLInputElement | null;
+  const levelOverlay = document.getElementById('levelSelectionOverlay'); // Referencia al Overlay de Niveles
 
-  if (!modalEl || !saveBtn || !volume || !difficulty || !fullscreen) return;
+  // B. Lógica de Navegación (Overlay de Niveles)
+  // Usamos delegación de eventos en el body para detectar clicks dinámicos
+  document.body.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // ABRIR: Si click en "Selección de Niveles" (botón del Hub)
+    if (target.closest('[data-scene-id="angel-levels"]')) {
+        if (levelOverlay) {
+            levelOverlay.style.display = 'flex'; // 'flex' activa el centrado y el glass
+        }
+    }
+
+    // CERRAR: Si click en "Volver al Menú" (dentro del overlay)
+    if (target.closest('[data-action="navigate-back"]')) {
+        if (levelOverlay) {
+            levelOverlay.style.display = 'none';
+        }
+    }
+    
+    // JUGAR: Si click en "Jugar" (dentro del overlay)
+    if (target.closest('[data-action="play-level"]')) {
+        // Aquí puedes disparar el evento para iniciar el juego real
+        const startEvent = new Event('startGame');
+        window.dispatchEvent(startEvent);
+        // Opcional: cerrar el overlay
+        if (levelOverlay) levelOverlay.style.display = 'none';
+    }
+  });
+
+  // C. Lógica del Modal de Configuración
+  if (!modalEl || !saveBtn || !volume) return;
 
   const bootstrapGlobal = (window as any).bootstrap;
   const modal = bootstrapGlobal?.Modal?.getOrCreateInstance(modalEl);
-  if (!modal) return;
 
+  // Cargar configuración guardada
   const saved = localStorage.getItem('gameSettings');
   if (saved) {
     const persisted = JSON.parse(saved);
     if (typeof persisted.volume === 'number') {
       volume.value = String(persisted.volume);
-      // Apply saved volume to global audio
       menuMusic.volume = persisted.volume / 100;
       btnSound.volume = persisted.volume / 100;
     }
-    if (typeof persisted.difficulty === 'string') {
+    if (difficulty && typeof persisted.difficulty === 'string') {
       difficulty.value = persisted.difficulty;
     }
-    if (typeof persisted.fullscreen === 'boolean') {
+    if (fullscreen && typeof persisted.fullscreen === 'boolean') {
       fullscreen.checked = persisted.fullscreen;
     }
   }
 
+  // Guardar configuración
   saveBtn.addEventListener('click', () => {
     const settings = {
       volume: Number.parseInt(volume.value, 10),
-      difficulty: difficulty.value,
-      fullscreen: fullscreen.checked,
+      difficulty: difficulty ? difficulty.value : 'normal',
+      fullscreen: fullscreen ? fullscreen.checked : false,
     };
 
     localStorage.setItem('gameSettings', JSON.stringify(settings));
 
+    // Actualizar volumen del juego si ya existe la instancia
     if ((window as any).game?.sound) {
       (window as any).game.sound.volume = settings.volume / 100;
     }
 
-    // Update global audio volume
+    // Actualizar volumen del menú actual
     menuMusic.volume = settings.volume / 100;
     btnSound.volume = settings.volume / 100;
 
-    modal.hide();
+    if (modal) modal.hide();
   });
 });

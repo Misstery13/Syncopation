@@ -2,7 +2,7 @@
    1. VARIABLES Y CONFIGURACIÓN GENERAL
    ========================================= */
 :root {
-    /* Paleta de Colores Cartoon */
+    /* Paleta de Colores */
     --orange-main: #FFCA28;
     --orange-dark: #FF6F00;
     --brown-border: #3E2723;
@@ -11,7 +11,7 @@
     --cream-bg: #FFF8E1;
     --white: #FFFFFF;
     
-    /* Colores para Stats */
+    /* Colores Stats */
     --stat-red: #ff8b8b;
     --stat-blue: #6ee7ff;
     --stat-green: #b5f25d;
@@ -27,58 +27,52 @@
 * { box-sizing: border-box; }
 
 body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+    margin: 0; padding: 0; width: 100%; height: 100%;
     overflow: hidden;
     font-family: 'Fredoka One', cursive;
     color: var(--brown-border);
+   
 }
 
 /* =========================================
    2. CANVAS Y CAPAS (LAYERS)
    ========================================= */
 #psychedelicCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1; display: block;
 }
 
 #ui-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    pointer-events: none;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2; pointer-events: none;
+  
+    
 }
 
-/* Contenedor genérico para centrar pantallas */
+/* Contenedor principal de pantallas */
 .screen-container, .menu-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    position: absolute; width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
     pointer-events: auto;
-    padding: 20px;
+    padding: clamp(1rem, 7vw, 2.5rem); 
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* EFECTO GLASS (Difuminado) para Menús */
+#loginScreen, #registerScreen, #mainMenuScreen {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .hidden { display: none !important; }
 
 /* =========================================
-   3. COMPONENTES COMUNES
+   3. FORMULARIOS Y TARJETAS (LOGIN / REGISTER)
    ========================================= */
 
-/* --- TARJETAS (Estilo Base) --- */
+/* Estilo base de Tarjeta (Usado en Registro y Hub) */
 .card-panel, .main-menu-panel {
     background: var(--cream-bg);
     border: 4px solid var(--brown-border);
@@ -87,77 +81,97 @@ body, html {
     text-align: center;
     position: relative;
     z-index: 10;
+    /* Dimensiones para formularios */
+    padding: 30px;
+    width: 80%; max-width: 450px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 
-/* Títulos */
-h1, h2, .game-title, .modal-title {
-    color: var(--orange-dark);
-    text-transform: uppercase;
-    font-family: 'Fredoka One', cursive;
-    margin: 0;
+/* FIX CRÍTICO PARA LOGIN: 
+   Detectamos si .level-selection-content está dentro de #loginScreen.
+   Si es así, lo forzamos a verse como una tarjeta vertical pequeña, 
+   ignorando el estilo ancho del selector de niveles.
+*/
+#loginScreen .level-selection-content {
+    background: var(--cream-bg);
+    border: 4px solid var(--brown-border);
+    border-radius: 30px;
+    box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+    padding: 30px;
+    width: 90%; max-width: 450px; /* Ancho de tarjeta */
+    height: auto; min-height: auto; /* Altura automática */
+    display: flex; flex-direction: column; /* Vertical */
+    align-items: center;
+    z-index: 10;
 }
+/* =========================================
+   PANTALLA DE SELECCIÓN DE NIVELES (OVERLAY)
+   ========================================= */
 
-/* --- BOTONES --- */
-.btn-custom, .menu-option, .menu-actions button {
-    font-family: 'Fredoka One', cursive;
-    text-transform: uppercase;
-    text-align: center;
-    cursor: pointer;
-    border: 3px solid var(--brown-border);
-    border-radius: 50px;
-    box-shadow: 0 5px 0 var(--brown-border);
-    transition: all 0.1s;
-    display: inline-flex;
+/* Contenedor principal: Se encarga del Fondo Glass y el Centrado */
+#levelSelectionScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50; /* Por encima de todo */
+    
+    /* EFECTO GLASS (Igual que créditos) */
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+
+    /* CENTRADO FLEXIBLE */
+    display: flex;
     justify-content: center;
     align-items: center;
-    text-decoration: none;
-    color: white;
+    
+    /* Animación de entrada suave */
+    animation: fadeIn 0.3s ease-out;
 }
 
-.btn-custom:hover, .menu-option:hover, .menu-actions button:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-    box-shadow: 0 8px 0 var(--brown-border);
+/* Animación para que aparezca suavemente */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.btn-custom:active, .menu-option:active {
-    transform: translateY(3px);
-    box-shadow: 0 2px 0 var(--brown-border);
-}
+/* =======================================================
+   PROTECCIÓN PARA EL LOGIN (Evita que se vea gigante)
+   ======================================================= */
 
-/* Estilos específicos de botones */
-.btn-play, .menu-option { 
-    background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%);
-    text-shadow: 2px 2px 0 #D84315;
-    font-size: 1.2rem;
-    padding: 12px 30px;
-}
-
-.btn-guest { 
-    background: linear-gradient(180deg, var(--blue-light) 0%, var(--blue-dark) 100%);
-    text-shadow: 2px 2px 0 #01579B;
-}
-
-.btn-secondary, .menu-actions button, .btn-back {
-    background: #90A4AE;
-    text-shadow: 2px 2px 0 #546E7A;
-    font-size: 1rem;
-    padding: 10px 20px;
-}
-
-.btn-config {
-    background: #FFF;
-    color: var(--brown-border);
-    font-size: 1.2rem;
-    padding: 10px 30px;
+/* Al usar el ID #loginScreen antes de la clase, ganamos prioridad */
+#loginScreen .level-selection-content {
+    /* 1. Dimensiones de tarjeta pequeña */
+    width: 90% !important;
+    max-width: 450px !important; 
+    height: auto !important;
+    min-height: auto !important;
+    
+    /* 2. Diseño Vertical (Formulario) */
+    display: flex;
+    flex-direction: column !important;
+    align-items: center;
+    justify-content: center;
+    
+    /* 3. Estética de tarjeta */
+    background: var(--cream-bg);
+    border: 4px solid var(--brown-border);
+    border-radius: 30px;
+    padding: 30px !important;
+    box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+    
+    /* 4. Reseteo de posiciones (Por si el otro estilo añade fixed) */
+    position: relative !important;
+    top: auto;
+    left: auto;
+    border: 4px solid var(--brown-border) !important; /* Asegura borde visible */
 }
 
 /* --- INPUTS --- */
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    align-items: center;
+    display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%;
 }
 
 input[type="text"], input[type="password"], .cartoon-input {
@@ -170,7 +184,6 @@ input[type="text"], input[type="password"], .cartoon-input {
     background: #E1F5FE;
     outline: none;
     width: 100%;
-    max-width: 300px;
     text-align: center;
     color: var(--brown-border);
 }
@@ -178,97 +191,73 @@ input[type="text"], input[type="password"], .cartoon-input {
 input:focus { background: #FFF; border-color: var(--orange-dark); }
 .message { font-family: 'Nunito', sans-serif; font-weight: bold; color: #D32F2F; font-size: 0.9rem; min-height: 20px; }
 
+/* Contenedor de botones del formulario */
+.form-buttons {
+    display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;
+}
 
 /* =========================================
-   4. PANTALLAS ESPECÍFICAS
+   4. BOTONES Y TEXTOS
+   ========================================= */
+h1, h2, .game-title, .modal-title {
+    color: var(--orange-dark);
+    text-transform: uppercase;
+    font-family: 'Fredoka One', cursive;
+    margin: 0;
+}
+
+.btn-custom, .menu-option, .menu-actions button {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    border: 3px solid var(--brown-border);
+    border-radius: 50px;
+    box-shadow: 0 5px 0 var(--brown-border);
+    transition: all 0.1s;
+    display: inline-flex; justify-content: center; align-items: center;
+    text-decoration: none; color: white;
+    padding: clamp(8px, 1.5vw, 12px) clamp(20px, 4vw, 35px);
+    margin: 5px;
+}
+
+.btn-custom:hover, .menu-option:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 8px 0 var(--brown-border); }
+.btn-custom:active, .menu-option:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--brown-border); }
+
+/* Colores */
+.btn-play, .menu-option { background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%); text-shadow: 2px 2px 0 #D84315; }
+.btn-guest { background: linear-gradient(180deg, var(--blue-light) 0%, var(--blue-dark) 100%); text-shadow: 2px 2px 0 #01579B; }
+.btn-secondary, .btn-back, .btn-close { background: #90A4AE; text-shadow: 2px 2px 0 #546E7A; }
+.btn-config { background: #FFF; color: var(--brown-border); }
+.small-btn { font-size: 0.9rem; padding: 8px 20px; }
+
+/* FIX LISTA HUB (Texto blanco sobre fondo naranja) */
+.menu-list-simple .menu-option {
+    width: 100%; margin-bottom: 10px;
+    background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%);
+    display: block; 
+}
+
+/* =========================================
+   5. PANTALLAS ESPECÍFICAS
    ========================================= */
 
-/* --- PANTALLA INICIAL (LOGIN/REGISTRO) --- */
-.title-section {
-    margin-bottom: 30px;
-    text-align: center;
-    animation: floatTitle 3s ease-in-out infinite;
-}
-
-h1.game-title {
-    font-size: clamp(3rem, 8vw, 5rem);
-    color: #FF5722;
-    text-shadow: 3px 3px 0 #FFC107, 4px 4px 0 #01579B;
-    -webkit-text-stroke: 2px #01579B;
-    transform: rotate(-2deg);
-}
-
+/* --- TÍTULO --- */
+.title-section { text-align: center; animation: floatTitle 3s ease-in-out infinite; margin-bottom: 20px; }
+h1.game-title { font-size: clamp(3rem, 12vw, 8rem); color: #FF5722; text-shadow: 3px 3px 0 #FFC107, 4px 4px 0 #01579B; -webkit-text-stroke: 2px #01579B; }
 .sound-wave { display: flex; justify-content: center; align-items: flex-end; height: 40px; gap: 5px; margin-bottom: -10px; }
 .bar { width: 8px; background: #FF9800; border: 2px solid #fff; animation: equalize 1s infinite alternate; }
+.menu-buttons { display: flex; gap: 15px; width: 100%; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
 
-.menu-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center; }
+/* --- HUB --- */
+.main-menu-panel { width: 90%; max-width: 80; padding: clamp(20px, 5vw, 0px); }
+.main-menu-panel .game-title { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: 10px; }
+.menu-subtitle { font-family: 'Nunito', sans-serif; font-size: 1.1rem; color: var(--blue-dark); font-weight: bold; margin-bottom: 25px; text-transform: uppercase; background: #E1F5FE; padding: 5px 15px; border-radius: 20px; border: 2px solid var(--blue-light); }
+.menu-description { margin-top: 20px; font-family: 'Nunito', sans-serif; font-size: 0.9rem; color: var(--brown-border); min-height: 40px; }
 
-/* --- PANTALLA: HUB PRINCIPAL (TU ESTRUCTURA) --- */
-.main-menu-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.main-menu-panel {
-    /* Estilo específico para el Hub */
-    padding: 40px;
-    width: 90%;
-    max-width: 500px;
-    
-    /* FIX CRÍTICO: Asegura columna vertical */
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center;
-}
-
-.main-menu-panel .game-title {
-    font-size: 3rem;
-    margin-bottom: 10px;
-    line-height: 1.2;
-}
-
-.menu-subtitle {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.1rem;
-    color: var(--blue-dark);
-    font-weight: bold;
-    margin-bottom: 25px;
-    text-transform: uppercase;
-    background: #E1F5FE;
-    padding: 5px 15px;
-    border-radius: 20px;
-    border: 2px solid var(--blue-light);
-}
-
-ul.menu-options {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.menu-options .menu-option {
-    width: 100%; /* Botones de ancho completo dentro del panel */
-}
-
-.menu-description {
-    margin-top: 20px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.9rem;
-    color: var(--brown-border);
-    min-height: 40px;
-}
-
-.menu-actions { margin-top: 10px; width: 100%; display: flex; justify-content: center; }
-
-/* --- PANTALLA: SELECTOR DE NIVELES --- */
+/* --- SELECTOR DE NIVELES (Estilo Original Preservado) --- */
+/* Esta regla NO afecta al login gracias al selector específico de arriba */
 .level-selection-content {
     background: var(--cream-bg);
     border: 4px solid var(--brown-border);
@@ -276,143 +265,79 @@ ul.menu-options {
     box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
     position: relative;
     z-index: 10;
-    width: 95%;
-    max-width: 900px;
-    height: 70vh;
-    min-height: 500px;
-    display: flex;
-    flex-direction: row;
+    width: 95%; max-width: 900px; /* Ancho completo */
+    height: 70vh; min-height: 500px;
+    display: flex; flex-direction: row; /* Diseño Fila */
     overflow: hidden;
+    
 }
-
-.level-list-container {
-    width: 40%;
-    padding: 20px;
-    border-right: 3px dashed var(--brown-border);
+/* Este es el PADRE que centra todo */
+#levelSelectionOverlay {
+    position: fixed; /* Fijo en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* ESTAS 3 LÍNEAS HACEN EL CENTRADO MÁGICO */
     display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.4);
-    gap: 15px;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center;     /* Centra verticalmente */
+
+    /* Fondo oscuro glass */
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 50;
 }
 
-.level-list {
-    list-style: none; padding: 5px; margin: 0; width: 100%; flex: 1; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 10px;
-}
 
-.level-item {
-    font-family: 'Fredoka One', cursive;
-    font-size: 1rem;
-    color: var(--brown-border);
-    background: #FFFFFF;
-    border: 3px solid var(--brown-border);
-    border-radius: 15px;
-    box-shadow: 0 4px 0 var(--brown-border);
-    padding: 12px;
-    cursor: pointer;
-    text-align: center;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    position: relative;
-}
-
+.level-list-container { width: 40%; padding: 20px; border-right: 3px dashed var(--brown-border); display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.4); gap: 15px; }
+.level-list { list-style: none; padding: 5px; margin: 0; width: 100%; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.level-item { font-family: 'Fredoka One', cursive; font-size: 1rem; color: var(--brown-border); background: #FFFFFF; border: 3px solid var(--brown-border); border-radius: 15px; box-shadow: 0 4px 0 var(--brown-border); padding: 12px; cursor: pointer; text-align: center; text-transform: uppercase; transition: all 0.2s; position: relative; }
 .level-item:hover { transform: translateY(-2px); background: #FFF9C4; }
 .level-item.selected { background: var(--orange-main); color: white; transform: translateX(5px); }
 .level-item.locked { background: #E0E0E0; color: #9E9E9E; border-color: #BDBDBD; cursor: not-allowed; transform: none; box-shadow: none; }
 .level-item.locked::after { content: "🔒"; position: absolute; right: 10px; top: 50%; opacity: 0.5; }
+.level-details-container { width: 60%; padding: 25px; display: flex; flex-direction: column; gap: 15px; background: transparent; }
+#level-description { font-family: 'Nunito', sans-serif; font-size: 1rem; color: var(--brown-border); background: #E1F5FE; padding: 15px; border-radius: 15px; border: 2px solid var(--blue-light); flex: 1; overflow-y: auto; }
+.level-play-button { font-family: 'Fredoka One', cursive; font-size: 1.5rem; background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%); color: white; border: 4px solid var(--brown-border); border-radius: 50px; padding: 15px; width: 100%; cursor: pointer; box-shadow: 0 6px 0 var(--brown-border); margin-top: auto; }
 
-.level-back-button {
-    font-family: 'Fredoka One', cursive;
-    background: #90A4AE; color: white; border: 3px solid var(--brown-border); border-radius: 50px;
-    padding: 10px 0; width: 100%; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 var(--brown-border);
-}
-
-.level-details-container {
-    width: 60%; padding: 25px; display: flex; flex-direction: column; gap: 15px; background: transparent;
-}
-
-#level-description {
-    font-family: 'Nunito', sans-serif; font-size: 1rem; color: var(--brown-border);
-    background: #E1F5FE; padding: 15px; border-radius: 15px; border: 2px solid var(--blue-light); flex: 1; overflow-y: auto;
-}
-
-.difficulty { font-family: 'Fredoka One', cursive; text-transform: uppercase; text-align: center; padding: 5px; }
-.difficulty-fácil { color: var(--diff-easy); }
-.difficulty-normal { color: var(--diff-normal); }
-.difficulty-difícil { color: var(--diff-hard); }
-
-.level-play-button {
-    font-family: 'Fredoka One', cursive; font-size: 1.5rem;
-    background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%);
-    color: white; border: 4px solid var(--brown-border); border-radius: 50px;
-    padding: 15px; width: 100%; cursor: pointer; box-shadow: 0 6px 0 var(--brown-border);
-    margin-top: auto;
-}
-
-/* --- PANTALLA: ESTADÍSTICAS --- */
-.stats-container {
-    background: var(--cream-bg); border: 4px solid var(--brown-border); border-radius: 30px;
-    padding: 30px; width: 95%; max-width: 800px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
-    display: flex; flex-direction: column; align-items: center; position: relative;
-}
-.stats-header {
-    background: var(--orange-main); border: 3px solid var(--brown-border); border-radius: 15px;
-    padding: 10px 20px; margin-bottom: 20px; box-shadow: 4px 4px 0 var(--brown-border);
-    animation: bounceTitle 2s infinite ease-in-out;
-}
-.stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; width: 100%; margin-bottom: 20px;
-}
-.stat-item {
-    background: var(--stat-red); border: 3px solid var(--brown-border); border-radius: 15px;
-    padding: 15px; box-shadow: 4px 4px 0 var(--brown-border); text-align: center;
-}
+/* --- OTROS (Stats, Creditos) --- */
+.stats-container, .credits-wrap { background: var(--cream-bg); border: 4px solid var(--brown-border); border-radius: 30px; padding: 30px; width: 95%; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); }
+.stats-header { background: var(--orange-main); border: 3px solid var(--brown-border); border-radius: 15px; padding: 10px 20px; margin-bottom: 20px; box-shadow: 4px 4px 0 var(--brown-border); animation: bounceTitle 2s infinite ease-in-out; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; width: 100%; margin-bottom: 20px; }
+.stat-item { background: var(--stat-red); border: 3px solid var(--brown-border); border-radius: 15px; padding: 15px; box-shadow: 4px 4px 0 var(--brown-border); text-align: center; }
 .stat-item:nth-child(2n) { background: var(--stat-blue); }
 .stat-item:nth-child(3n) { background: var(--stat-green); }
-.stat-item span { display: block; font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800; margin-bottom: 5px; }
-.stat-item strong { font-size: 1.4rem; color: white; text-shadow: 2px 2px 0 rgba(0,0,0,0.2); }
 
-/* --- PANTALLA: CRÉDITOS --- */
-#credits-overlay {
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-    display: none; align-items: center; justify-content: center;
-}
+/* --- UTILIDADES --- */
+#credits-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; }
 #credits-overlay.is-open { display: flex; }
-.credits-wrap {
-    background: var(--cream-bg); border: 4px solid var(--brown-border); border-radius: 30px;
-    padding: 30px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: left;
-}
-.credits-header {
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 3px dashed var(--brown-border); padding-bottom: 15px; margin-bottom: 15px;
-}
-.credits-role { color: var(--blue-dark); font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
-.credits-names { font-family: 'Nunito', sans-serif; font-size: 1rem; color: var(--brown-border); margin: 0; }
-
-/* =========================================
-   5. UTILIDADES (ANIMACIONES, SCROLL, ETC)
-   ========================================= */
-.cartoon-modal {
-    background-color: var(--cream-bg); border: 4px solid var(--brown-border);
-    border-radius: 20px; box-shadow: 10px 10px 0 rgba(0,0,0,0.3);
-}
+.credits-wrap { max-width: 600px; max-height: 80vh; overflow-y: auto; }
+.credits-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px dashed var(--brown-border); padding-bottom: 15px; margin-bottom: 15px; }
+.cartoon-modal { background-color: var(--cream-bg); border: 4px solid var(--brown-border); border-radius: 20px; box-shadow: 10px 10px 0 rgba(0,0,0,0.3); }
 .modal-header { border-bottom: 3px dashed var(--brown-border); }
 .modal-footer { border-top: none; }
+.modal-backdrop.show { opacity: 0.7 !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; background-color: #000 !important; }
 
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--orange-main); border: 2px solid var(--brown-border); border-radius: 10px; }
 
-@keyframes floatTitle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(-2deg); } }
+@keyframes floatTitle { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
 @keyframes equalize { 0% { height: 10px; } 100% { height: 35px; } }
 @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes bounceTitle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-/* Responsive */
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-    h1.game-title { font-size: 3rem; }
+    .menu-buttons { flex-direction: column; gap: 15px; }
+    .menu-buttons .btn-custom { width: 80%; }
+    
+    /* Login Fix Móvil */
+    #loginScreen .level-selection-content { padding: 1.5rem; width: 95%; }
+    
+    /* Selector de Niveles Responsive */
     .level-selection-content { flex-direction: column; height: auto; }
     .level-list-container { width: 100%; border-right: none; border-bottom: 3px dashed var(--brown-border); height: 250px; }
     .level-details-container { width: 100%; padding: 15px; }
