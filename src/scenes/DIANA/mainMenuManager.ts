@@ -1,12 +1,12 @@
 import { LevelSelectManager } from '../ANGEL/levelScreenManager';
 import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
+import { initRhythmScreen } from '../CARLOS/gameplayController';
+import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
 import type { User } from '../../types';
 
-import '../ANGEL/stylesSelected.css';
-import '../CARLOS/statsScreen.css';
-import '../CARLOS/statsScreen2.css';
-import '../SAID/credits.css';
+// Nota: El CSS se carga desde public/assets/css/style.css (index.html).
+// Se removieron imports relativos a CSS para evitar que el bundler intente resolver archivos dentro de src.
 
 type SceneId =
   | 'start-game'
@@ -276,6 +276,9 @@ export class MainMenuManager {
 
   private openAngelLevels(): void {
     this.detachKeyboard();
+    // Ocultar el panel del menú principal para evitar superposición
+    this.menuPanel.style.display = 'none';
+
     const level = this.authContext?.user?.progress?.level ?? 1;
     const manager = new LevelSelectManager(level);
 
@@ -289,13 +292,16 @@ export class MainMenuManager {
           window.location.href = target;
         } catch (e) {
           // Fallback: mostrar mensaje en UI
-          this.renderPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
+          this.showPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
         }
       })
       .catch(() => {
-        this.renderPlaceholder('Selección cancelada. Puedes explorar otra opción.');
+        // Selección cancelada, simplemente volvemos al menú principal
+        console.debug('[MainMenuManager] Level selection cancelled');
       })
       .finally(() => {
+        // Restaurar el panel del menú principal
+        this.menuPanel.style.display = 'flex';
         if (this.isActive) this.attachKeyboard();
       });
   }
@@ -303,8 +309,20 @@ export class MainMenuManager {
   private openCarlosStats(): void {
     this.detachKeyboard();
     this.clearContent();
-    // Ocultar el panel del menú lateral para mostrar solo las estadísticas
-    this.menuPanel.style.display = 'none';
+    // Ocultar sólo los elementos del panel lateral (dejar `#app-root` visible)
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        if (el.id === 'app-root') {
+          el.style.display = ''; // mantener visible
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    } catch (err) {
+      console.warn('[MainMenuManager] Could not selectively hide children of menuPanel, falling back to hide whole panel', err);
+      this.menuPanel.style.display = 'none';
+    }
     // Hacer que el contenido ocupe todo el espacio y centre el contenido
     this.appRoot.style.width = '100%';
     this.appRoot.style.maxWidth = '100%';
@@ -315,7 +333,13 @@ export class MainMenuManager {
     this.appRoot.style.padding = '';
     // Agregar clase para estilos CSS específicos
     this.appRoot.classList.add('stats-view');
-    initStatsScreen();
+    try {
+      console.debug('[MainMenuManager] Opening Carlos stats screen');
+      initStatsScreen();
+      console.debug('[MainMenuManager] initStatsScreen() completed');
+    } catch (err) {
+      console.error('[MainMenuManager] Error calling initStatsScreen', err);
+    }
   }
 
   private openSaidCredits(): void {
@@ -359,7 +383,15 @@ export class MainMenuManager {
   private resumeFromExternalNavigation(): void {
     if (!this.authContext) return;
     // Restaurar el panel del menú cuando se regresa
-    this.menuPanel.style.display = 'flex';
+    // Restaurar visibilidad de los elementos del panel lateral
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        el.style.display = '';
+      });
+    } catch (err) {
+      this.menuPanel.style.display = 'flex';
+    }
     // Restaurar los estilos del contenido
     this.appRoot.style.width = '';
     this.appRoot.style.maxWidth = '';
@@ -380,4 +412,3 @@ export class MainMenuManager {
     }
   }
 }
-

@@ -2,115 +2,206 @@
 <html lang="es">
 
 <head>
-  <title>Syncopation Game</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="assets/css/login.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syncopation - Menú Principal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap"
+        rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
 </head>
 
 <body>
 
-  <!-- Menú principal -->
-  <div id="menuScreen" class="menu-container">
-    <h1 class="game-title">Syncopation Game</h1>
-    <ul class="menu-options">
-      <li class="menu-option selected" data-action="login">Inicio de Sesión</li>
-      <li class="menu-option" data-action="register">Crear Cuenta</li>
-      <li class="menu-option" data-action="guest">Jugar como Invitado</li>
-      <button type="button" id="configBtn" data-bs-toggle="modal" data-bs-target="#configModal">
-        Configuración ⚙️
-      </button>
-    </ul>
-  </div>
+    <canvas id="psychedelicCanvas"></canvas>
 
+    <div id="ui-layer">
 
-  <!--Pantalla de login-->
-  <div id="loginScreen" class="form-container" style="display:none;">
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Usuario" required>
-      <input type="password" id="password" placeholder="Contraseña" required>
+        <div id="menuScreen" class="screen-container">
+            <div class="title-section">
+                <div class="sound-wave">
+                    <div class="bar" style="animation-delay: 0.1s"></div>
+                    <div class="bar" style="animation-delay: 0.3s"></div>
+                    <div class="bar" style="animation-delay: 0.5s"></div>
+                    <div class="bar" style="animation-delay: 0.2s"></div>
+                    <div class="bar" style="animation-delay: 0.4s"></div>
+                </div>
+                <h1 class="game-title">SYNCOPATION</h1>
+            </div>
 
+            <div class="menu-buttons">
+                <button class="btn-custom btn-play menu-option" data-action="login">INICIAR SESIÓN</button>
+                <button class="btn-custom btn-play menu-option" data-action="register">CREAR CUENTA</button>
+                <button class="btn-custom btn-guest menu-option" data-action="guest">JUGAR INVITADO</button>
 
-      <button type="submit" class="btn btn-primary">Entrar</button>
-      <button type="button" class="btn btn-secondary" id="backToMenuBtn">Volver</button>
-
-      <div id="loginMessage" class="message"></div>
-    </form>
-  </div>
-
-  <!-- Pantalla de Registro -->
-  <div id="registerScreen" class="form-container" style="display: none;">
-    <h2>Crear Cuenta</h2>
-    <form id="registerForm">
-      <input type="text" id="regUsername" placeholder="Usuario" required>
-      <input type="password" id="regPassword" placeholder="Contraseña" required>
-      <input type="password" id="regConfirmPassword" placeholder="Confirmar Contraseña" required>
-
-      <button type="submit" class="btn btn-primary">Registrar</button>
-      <button type="button" class="btn btn-secondary" id="backToMenuBtn2">Volver</button>
-
-      <div id="registerMessage" class="message"></div>
-    </form>
-  </div>
-
-  <!-- Pantalla de menú principal -->
-  <div id="mainMenuScreen" class="menu-container hidden" style="display: none;">
-    <div class="main-menu-wrapper">
-      <div class="main-menu-panel">
-        <h1 class="game-title">Syncopation Hub</h1>
-        <p id="mainMenuSubtitle" class="menu-subtitle"></p>
-        <ul id="mainMenuOptions" class="menu-options"></ul>
-        <p id="mainMenuDescription" class="menu-description"></p>
-        <div class="menu-actions">
-          <button type="button" class="btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+                <button class="btn-custom btn-config" data-bs-toggle="modal" data-bs-target="#configModal">
+                    OPCIONES ⚙️
+                </button>
+            </div>
         </div>
-      </div>
-      <div id="app-root" class="main-menu-content" aria-live="polite"></div>
+
+        <div id="loginScreen" class="screen-container" style="display:none;">
+            <div class="card-panel login-panel">
+                <h2 class="auth-title">Identifícate</h2>
+                <form id="loginForm">
+                    <input type="text" id="username" placeholder="Usuario" required>
+                    <input type="password" id="password" placeholder="Contraseña" required>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-custom btn-play small-btn">Entrar</button>
+                        <button type="button" class="btn-custom btn-back small-btn" id="backToMenuBtn">Volver</button>
+                    </div>
+                    <div id="loginMessage" class="message"></div>
+                </form>
+            </div>
+        </div>
+
+
+        <div id="registerScreen" class="screen-container" style="display: none;">
+            <div class="card-panel">
+                <h2>Nuevo Jugador</h2>
+                <form id="registerForm">
+                    <input type="text" id="regUsername" placeholder="Usuario" required>
+                    <input type="password" id="regPassword" placeholder="Contraseña" required>
+                    <input type="password" id="regConfirmPassword" placeholder="Confirmar" required>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-custom btn-play small-btn">Registrar</button>
+                        <button type="button" class="btn-custom btn-back small-btn" id="backToMenuBtn2">Volver</button>
+                    </div>
+                    <div id="registerMessage" class="message"></div>
+                </form>
+            </div>
+        </div>
+
+        <div id="mainMenuScreen" class="screen-container" style="display: none;">
+            <div class="card-panel wide-panel main-menu-panel">
+                <h1 class="game-title small-title">Syncopation Hub</h1>
+                <p id="mainMenuSubtitle" class="menu-subtitle">¡Bienvenido!</p>
+
+                <ul id="mainMenuOptions" class="menu-list-simple"></ul>
+
+                <p id="mainMenuDescription" class="menu-description"></p>
+
+                <button type="button" class="btn-custom btn-back small-btn" id="logoutBtn">Cerrar Sesión</button>
+
+                <div id="app-root" class="main-menu-content"></div>
+            </div>
+        </div>
+
     </div>
-  </div>
-  <!-- Modal de configuracion -->
-  <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title" id="configModalLabel">Configuración del Juego</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <form id="configForm">
-            <div class="mb-3">
-              <label for="volumeRange" class="form-label">Volumen</label>
-              <input type="range" class="form-range" id="volumeRange" min="0" max="100" value="50">
-            </div>
 
-            <div class="mb-3">
-              <label for="difficultySelect" class="form-label">Dificultad</label>
-              <select class="form-select" id="difficultySelect">
-                <option value="easy">Fácil</option>
-                <option value="medium" selected>Media</option>
-                <option value="hard">Difícil</option>
-              </select>
+    <div class="modal fade" id="configModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cartoon-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title">Configuración</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="configForm">
+                        <div class="mb-3">
+                            <label for="volumeRange" class="form-label">Volumen</label>
+                            <input type="range" class="form-range" id="volumeRange" min="0" max="100" value="50">
+                        </div>
+                        <div class="mb-3">
+                            <label for="difficultySelect" class="form-label">Dificultad</label>
+                            <select class="form-select cartoon-input" id="difficultySelect">
+                                <option value="easy">Fácil</option>
+                                <option value="medium" selected>Media</option>
+                                <option value="hard">Difícil</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" id="fullscreenToggle" class="form-check-input cartoon-check">
+                            <label for="fullscreenToggle" class="form-check-label">Pantalla Completa</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-custom btn-back small-btn"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn-custom btn-play small-btn" id="saveConfigBtn">Guardar</button>
+                </div>
             </div>
-
-            <div class="mb-3">
-              <label for="fullscreenToggle" class="form-label">Pantalla Completa</label>
-              <input type="checkbox" id="fullscreenToggle" class="form-check-input ms-2">
-            </div>
-          </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="saveConfigBtn">Guardar</button>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Canvas del Juego -->
-  <canvas id="gameCanvas" style="display: none;"></canvas>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="../src/main.ts"></script>
+    <canvas id="gameCanvas" style="display: none;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="stars.js"></script>
+    <script type="module" src="../src/main.ts"></script>
+
+    <!--
+    <script>
+        // Fallback audio manager para cuando el bundle no haya inicializado audio.
+        (function () {
+            const menuSrc = 'assets/audio/test.mp3';
+            const btnSrc = 'assets/audio/sfx/btnSound.mp3';
+
+            const menuMusic = new Audio(menuSrc);
+            menuMusic.loop = true;
+            menuMusic.volume = 0.5;
+
+            const btnSound = new Audio(btnSrc);
+            btnSound.volume = 0.5;
+
+            let autoplayBlocked = false;
+
+            menuMusic.play().catch(() => {
+                autoplayBlocked = true;
+                // Esperar interacción del usuario para reproducir
+                const resume = () => {
+                    menuMusic.play().catch(() => { });
+                    document.removeEventListener('click', resume);
+                    document.removeEventListener('keydown', resume);
+                    autoplayBlocked = false;
+                };
+                document.addEventListener('click', resume, { once: true });
+                document.addEventListener('keydown', resume, { once: true });
+            });
+
+            // Reproducir SFX en clicks sobre botones / elementos interactivos
+            document.addEventListener('click', (ev) => {
+                const target = (ev.target instanceof HTMLElement) ? ev.target.closest('button, .btn-custom, .menu-option, [data-action]') : null;
+                if (!target) return;
+                // Clonar audio para permitir solapamiento
+                try {
+                    const s = btnSound.cloneNode();
+                    s.volume = btnSound.volume;
+                    // algunos clones pueden no ser HTMLAudioElement en TS-free runtime; forzar tipo en uso
+                    s.play?.().catch(() => { });
+                } catch (e) {
+                    // Fallback simple: crear nuevo elemento si clone falla
+                    const a = new Audio(btnSrc);
+                    a.volume = btnSound.volume;
+                    a.play().catch(() => { });
+                }
+
+                // Si autoplay estaba bloqueado, al primer click intentar iniciar menuMusic también
+                if (autoplayBlocked) {
+                    menuMusic.play().catch(() => { });
+                    autoplayBlocked = false;
+                }
+            });
+
+            // Exponer en window para que el bundle pueda acceder si se carga después
+            window.__fallbackAudio = {
+                menuMusic,
+                btnSound,
+                playMenu: () => menuMusic.play().catch(() => { }),
+                pauseMenu: () => { menuMusic.pause(); menuMusic.currentTime = 0; }
+            };
+        })();
+    </script>
+    -->
+
+
 </body>
 
 </html>

@@ -22,7 +22,7 @@ const menuMusic = new Audio('assets/audio/test.mp3');
 menuMusic.loop = true;
 menuMusic.volume = 0.5; // Default volume
 
-// Attempt to play immediately
+// Intentar reproducir de inmediato
 menuMusic.play().catch(() => {
   console.log('Autoplay blocked. Waiting for user interaction to play menu music.');
   const playOnInteraction = () => {
@@ -47,6 +47,7 @@ document.addEventListener('click', (event) => {
     // Clone the node to allow overlapping sounds if clicked rapidly
     const soundClone = btnSound.cloneNode() as HTMLAudioElement;
     soundClone.volume = btnSound.volume;
+    soundClone.muted = btnSound.muted;
     soundClone.play().catch(e => console.warn('Button sound blocked', e));
   }
 });
@@ -59,6 +60,25 @@ window.addEventListener('startGame', () => {
   const game: Game = new Game();
   game.start();
 });
+
+// --- Helper para Pantalla Completa ---
+function applyFullscreen(enabled: boolean) {
+  const elem = document.documentElement;
+
+  if (enabled) {
+    if (!document.fullscreenElement && elem.requestFullscreen) {
+      elem.requestFullscreen().catch((e) => {
+        console.warn('No se pudo activar pantalla completa', e);
+      });
+    }
+  } else {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch((e) => {
+        console.warn('No se pudo salir de pantalla completa', e);
+      });
+    }
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const modalEl = document.getElementById('configModal');
@@ -78,34 +98,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const persisted = JSON.parse(saved);
     if (typeof persisted.volume === 'number') {
       volume.value = String(persisted.volume);
+
+      const normalized = persisted.volume / 100;
+      const muted = persisted.volume === 0;
+
       // Apply saved volume to global audio
-      menuMusic.volume = persisted.volume / 100;
-      btnSound.volume = persisted.volume / 100;
+      menuMusic.volume = normalized;
+      menuMusic.muted = muted;
+
+      btnSound.volume = normalized;
+      btnSound.muted = muted;
     }
     if (typeof persisted.difficulty === 'string') {
       difficulty.value = persisted.difficulty;
     }
     if (typeof persisted.fullscreen === 'boolean') {
       fullscreen.checked = persisted.fullscreen;
+      // Aplicar estado de pantalla completa guardado
+      applyFullscreen(persisted.fullscreen);
     }
   }
 
+  // Si el usuario sale con ESC, sincronizamos la casilla
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fullscreen.checked = isFs;
+  });
+
   saveBtn.addEventListener('click', () => {
+    const volumeValue = Number.parseInt(volume.value, 10);
+    const normalized = volumeValue / 100;
+    const muted = volumeValue === 0;
+
     const settings = {
-      volume: Number.parseInt(volume.value, 10),
+      volume: volumeValue,
       difficulty: difficulty.value,
       fullscreen: fullscreen.checked,
     };
 
     localStorage.setItem('gameSettings', JSON.stringify(settings));
 
-    if ((window as any).game?.sound) {
-      (window as any).game.sound.volume = settings.volume / 100;
+    // Si existe audio global de Phaser, aplicar también
+    const gameAny = (window as any).game;
+    if (gameAny?.sound) {
+      gameAny.sound.volume = normalized;
+      gameAny.sound.mute = muted;
     }
 
-    // Update global audio volume
-    menuMusic.volume = settings.volume / 100;
-    btnSound.volume = settings.volume / 100;
+    // Update global audio volume (menú + click)
+    menuMusic.volume = normalized;
+    menuMusic.muted = muted;
+
+    btnSound.volume = normalized;
+    btnSound.muted = muted;
+
+    // Aplicar / quitar pantalla completa según la casilla
+    applyFullscreen(settings.fullscreen);
 
     modal.hide();
   });
