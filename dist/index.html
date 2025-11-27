@@ -1,97 +1,82 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <title>Syncopation Game</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    
-    
-    
 
-  <script type="module" crossorigin src="./assets/index-6c69066f.js"></script>
-  <link rel="stylesheet" href="./assets/index-b6e3e5d9.css">
+<head>
+  <title>Syncopation Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <script type="module" crossorigin src="./assets/index-BzeC9Tse.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DluoMPdt.css">
 </head>
+
 <body>
 
-    <!-- Menú principal -->
-    <div id="menuScreen" class="menu-container">
-        <h1 class="game-title">Syncopation Game</h1>
-        <ul class="menu-options">
-            <li class="menu-option selected" data-action="login">Inicio de Sesión</li>
-            <li class="menu-option" data-action="register">Crear Cuenta</li>
-            <li class="menu-option" data-action="guest">Jugar como Invitado</li>
-            <button
-                type="button"
-                id="configBtn"
-                data-bs-toggle="modal"
-                data-bs-target="#configModal">
-                Configuración ⚙️
-            </button>
-        </ul>
-    </div>
+  <!-- Menú principal -->
+  <div id="menuScreen" class="menu-container">
+    <h1 class="game-title">Syncopation Game</h1>
+    <ul class="menu-options">
+      <li class="menu-option selected" data-action="login">Inicio de Sesión</li>
+      <li class="menu-option" data-action="register">Crear Cuenta</li>
+      <li class="menu-option" data-action="guest">Jugar como Invitado</li>
+      <button type="button" id="configBtn" data-bs-toggle="modal" data-bs-target="#configModal">
+        Configuración ⚙️
+      </button>
+    </ul>
+  </div>
 
 
-    <!--Pantalla de login-->
-    <div id="loginScreen" class="form-container" style="display:none;">
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Usuario" required>
-            <input type="password" id="password" placeholder="Contraseña"  required>
-            
-            
-            <button type="submit" class="btn btn-primary">Entrar</button>
-            <button type="button" class="btn btn-secondary" id="backToMenuBtn">Volver</button>
-                            
-            <div id="loginMessage" class="message"></div>
-        </form>
-    </div>
+  <!--Pantalla de login-->
+  <div id="loginScreen" class="form-container" style="display:none;">
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Usuario" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
 
-    <!-- Pantalla de Registro -->
-    <div id="registerScreen" class="form-container" style="display: none;">
-        <h2>Crear Cuenta</h2>
-        <form id="registerForm">
-            <input type="text" id="regUsername" placeholder="Usuario" required>
-            <input type="password" id="regPassword" placeholder="Contraseña" required> 
-            <input type="password" id="regConfirmPassword" placeholder="Confirmar Contraseña" required>
-            
-            <button type="submit" class="btn btn-primary">Registrar</button>
-            <button type="button" class="btn btn-secondary" id="backToMenuBtn2">Volver</button>
-                            
-            <div id="registerMessage" class="message"></div>
-        </form>
-    </div>
 
-    <!-- Pantalla de menú principal -->
-    <div id="mainMenuScreen" class="menu-container hidden" style="display: none;">
-        <div class="main-menu-wrapper">
-            <div class="main-menu-panel">
-                <h1 class="game-title">Syncopation Hub</h1>
-                <p id="mainMenuSubtitle" class="menu-subtitle"></p>
-                <ul id="mainMenuOptions" class="menu-options"></ul>
-                <p id="mainMenuDescription" class="menu-description"></p>
-                <div class="menu-actions">
-                    <button type="button" class="btn-secondary" id="logoutBtn">Cerrar Sesión</button>
-                </div>
-            </div>
-            <div id="app-root" class="main-menu-content" aria-live="polite"></div>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+      <button type="button" class="btn btn-secondary" id="backToMenuBtn">Volver</button>
+
+      <div id="loginMessage" class="message"></div>
+    </form>
+  </div>
+
+  <!-- Pantalla de Registro -->
+  <div id="registerScreen" class="form-container" style="display: none;">
+    <h2>Crear Cuenta</h2>
+    <form id="registerForm">
+      <input type="text" id="regUsername" placeholder="Usuario" required>
+      <input type="password" id="regPassword" placeholder="Contraseña" required>
+      <input type="password" id="regConfirmPassword" placeholder="Confirmar Contraseña" required>
+
+      <button type="submit" class="btn btn-primary">Registrar</button>
+      <button type="button" class="btn btn-secondary" id="backToMenuBtn2">Volver</button>
+
+      <div id="registerMessage" class="message"></div>
+    </form>
+  </div>
+
+  <!-- Pantalla de menú principal -->
+  <div id="mainMenuScreen" class="menu-container hidden" style="display: none;">
+    <div class="main-menu-wrapper">
+      <div class="main-menu-panel">
+        <h1 class="game-title">Syncopation Hub</h1>
+        <p id="mainMenuSubtitle" class="menu-subtitle"></p>
+        <ul id="mainMenuOptions" class="menu-options"></ul>
+        <p id="mainMenuDescription" class="menu-description"></p>
+        <div class="menu-actions">
+          <button type="button" class="btn-secondary" id="logoutBtn">Cerrar Sesión</button>
         </div>
+      </div>
+      <div id="app-root" class="main-menu-content" aria-live="polite"></div>
     </div>
-    <!-- Modal de configuracion -->
-  <div
-    class="modal fade"
-    id="configModal"
-    tabindex="-1"
-    aria-labelledby="configModalLabel"
-    aria-hidden="true">
+  </div>
+  <!-- Modal de configuracion -->
+  <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark text-light">
         <div class="modal-header">
           <h5 class="modal-title" id="configModalLabel">Configuración del Juego</h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-            aria-label="Cerrar"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
           <form id="configForm">
@@ -123,9 +108,9 @@
     </div>
   </div>
 
-    <!-- Canvas del Juego -->
-    <canvas id="gameCanvas" style="display: none;"></canvas>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
+  <!-- Canvas del Juego -->
+  <canvas id="gameCanvas" style="display: none;"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

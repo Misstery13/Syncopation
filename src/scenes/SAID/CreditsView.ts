@@ -1,4 +1,3 @@
-import './credits.css';
 import { CreditEntry, getCredits, filterCredits } from './creditsDomain';
 
 export type CreditsViewAPI = {

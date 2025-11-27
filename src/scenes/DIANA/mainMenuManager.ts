@@ -1,12 +1,12 @@
 import { LevelSelectManager } from '../ANGEL/levelScreenManager';
 import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
+import { initRhythmScreen } from '../CARLOS/gameplayController';
+import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
 import type { User } from '../../types';
 
-import '../ANGEL/stylesSelected.css';
-import '../CARLOS/statsScreen.css';
-import '../CARLOS/statsScreen2.css';
-import '../SAID/credits.css';
+// Nota: El CSS se carga desde public/assets/css/style.css (index.html).
+// Se removieron imports relativos a CSS para evitar que el bundler intente resolver archivos dentro de src.
 
 type SceneId =
   | 'start-game'
@@ -61,6 +61,7 @@ export class MainMenuManager {
   private readonly appRoot: HTMLElement;
   private readonly logoutBtn: HTMLButtonElement;
   private readonly gameCanvas: HTMLCanvasElement;
+  private readonly menuPanel: HTMLElement;
 
   private readonly items: MenuItemData[] = createSceneMenuItems();
   private readonly optionElements: HTMLLIElement[] = [];
@@ -82,8 +83,9 @@ export class MainMenuManager {
     const appRoot = document.getElementById('app-root');
     const logoutBtn = document.getElementById('logoutBtn') as HTMLButtonElement | null;
     const gameCanvas = document.getElementById('gameCanvas') as HTMLCanvasElement | null;
+    const menuPanel = document.querySelector('.main-menu-panel') as HTMLElement | null;
 
-    if (!screen || !optionsList || !description || !subtitle || !appRoot || !logoutBtn || !gameCanvas) {
+    if (!screen || !optionsList || !description || !subtitle || !appRoot || !logoutBtn || !gameCanvas || !menuPanel) {
       throw new Error('[MainMenuManager] Elementos críticos del DOM no encontrados');
     }
 
@@ -94,6 +96,7 @@ export class MainMenuManager {
     this.appRoot = appRoot;
     this.logoutBtn = logoutBtn;
     this.gameCanvas = gameCanvas;
+    this.menuPanel = menuPanel;
     this.callbacks = callbacks ?? {};
 
     registerCreditsNavigation();
@@ -110,6 +113,18 @@ export class MainMenuManager {
     this.screen.style.display = 'flex';
     this.screen.classList.remove('hidden');
     this.gameCanvas.style.display = 'none';
+
+    // Asegurar que el panel del menú esté visible
+    this.menuPanel.style.display = 'flex';
+    // Restaurar los estilos del contenido
+    this.appRoot.style.width = '';
+    this.appRoot.style.maxWidth = '';
+    this.appRoot.style.display = '';
+    this.appRoot.style.alignItems = '';
+    this.appRoot.style.justifyContent = '';
+    this.appRoot.style.padding = '';
+    // Remover clase de estadísticas
+    this.appRoot.classList.remove('stats-view');
 
     this.renderSubtitle();
     this.highlightOption(0);
@@ -160,8 +175,8 @@ export class MainMenuManager {
       this.authContext.mode === 'guest'
         ? 'Sesión como invitado'
         : this.authContext.mode === 'register'
-        ? 'Cuenta recién creada'
-        : 'Sesión iniciada';
+          ? 'Cuenta recién creada'
+          : 'Sesión iniciada';
 
     this.subtitle.textContent = `${modeLabel}: ${username}`;
   }
@@ -261,20 +276,32 @@ export class MainMenuManager {
 
   private openAngelLevels(): void {
     this.detachKeyboard();
+    // Ocultar el panel del menú principal para evitar superposición
+    this.menuPanel.style.display = 'none';
+
     const level = this.authContext?.user?.progress?.level ?? 1;
     const manager = new LevelSelectManager(level);
 
     manager
       .show()
       .then((selection) => {
-        this.renderPlaceholder(
-          `Nivel seleccionado: ${selection.levelId}. Canción: ${selection.songFile}.`
-        );
+        // Al seleccionar "Jugar" navegamos a la página de test del gameplay.
+        // Si más adelante queremos pasar información podemos añadir query params.
+        try {
+          const target = '/rhythmGameplay-test.html';
+          window.location.href = target;
+        } catch (e) {
+          // Fallback: mostrar mensaje en UI
+          this.showPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
+        }
       })
       .catch(() => {
-        this.renderPlaceholder('Selección cancelada. Puedes explorar otra opción.');
+        // Selección cancelada, simplemente volvemos al menú principal
+        console.debug('[MainMenuManager] Level selection cancelled');
       })
       .finally(() => {
+        // Restaurar el panel del menú principal
+        this.menuPanel.style.display = 'flex';
         if (this.isActive) this.attachKeyboard();
       });
   }
@@ -282,7 +309,37 @@ export class MainMenuManager {
   private openCarlosStats(): void {
     this.detachKeyboard();
     this.clearContent();
-    initStatsScreen();
+    // Ocultar sólo los elementos del panel lateral (dejar `#app-root` visible)
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        if (el.id === 'app-root') {
+          el.style.display = ''; // mantener visible
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    } catch (err) {
+      console.warn('[MainMenuManager] Could not selectively hide children of menuPanel, falling back to hide whole panel', err);
+      this.menuPanel.style.display = 'none';
+    }
+    // Hacer que el contenido ocupe todo el espacio y centre el contenido
+    this.appRoot.style.width = '100%';
+    this.appRoot.style.maxWidth = '100%';
+    this.appRoot.style.display = 'flex';
+    this.appRoot.style.alignItems = 'center';
+    this.appRoot.style.justifyContent = 'center';
+    // Padding responsivo - se maneja mejor con CSS media queries
+    this.appRoot.style.padding = '';
+    // Agregar clase para estilos CSS específicos
+    this.appRoot.classList.add('stats-view');
+    try {
+      console.debug('[MainMenuManager] Opening Carlos stats screen');
+      initStatsScreen();
+      console.debug('[MainMenuManager] initStatsScreen() completed');
+    } catch (err) {
+      console.error('[MainMenuManager] Error calling initStatsScreen', err);
+    }
   }
 
   private openSaidCredits(): void {
@@ -325,6 +382,25 @@ export class MainMenuManager {
 
   private resumeFromExternalNavigation(): void {
     if (!this.authContext) return;
+    // Restaurar el panel del menú cuando se regresa
+    // Restaurar visibilidad de los elementos del panel lateral
+    try {
+      Array.from(this.menuPanel.children).forEach((child) => {
+        const el = child as HTMLElement;
+        el.style.display = '';
+      });
+    } catch (err) {
+      this.menuPanel.style.display = 'flex';
+    }
+    // Restaurar los estilos del contenido
+    this.appRoot.style.width = '';
+    this.appRoot.style.maxWidth = '';
+    this.appRoot.style.display = '';
+    this.appRoot.style.alignItems = '';
+    this.appRoot.style.justifyContent = '';
+    this.appRoot.style.padding = '';
+    // Remover clase de estadísticas
+    this.appRoot.classList.remove('stats-view');
     this.show(this.authContext);
   }
 
@@ -336,4 +412,3 @@ export class MainMenuManager {
     }
   }
 }
-

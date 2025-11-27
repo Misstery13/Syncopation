@@ -10,7 +10,7 @@ src/scenes/CARLOS/build/
 .idea/
 
 # Sistema
-.DS_Store
+node_modules/
 Thumbs.db
 
 # Logs
