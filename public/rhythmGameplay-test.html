@@ -9,35 +9,57 @@
     <title>Rhythm Game Prototype</title>
     <style>
         body {
-            background-color: black;
+            background-color: #0b0b0b;
             color: white;
             margin: 0;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
         }
 
         .rhythm-container {
             padding: 20px;
-            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .stats {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            gap: 12px;
         }
 
-        .stat-item strong {
+        .stat-item {
+            flex: 1 1 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 14px 8px;
+            border-radius: 8px;
+        }
+
+        .stat-item .label {
+            display: block;
+            font-size: 14px;
+            color: #bbb;
+        }
+
+        .stat-item .value {
+            display: block;
+            font-size: 28px;
+            font-weight: 700;
             color: #00ff7f;
         }
 
-        #action-button {
-            padding: 30px 60px;
-            font-size: 30px;
-            cursor: pointer;
-            background-color: #ff00ff;
-            color: white;
-            border: none;
-            border-radius: 10px;
+        /* Game area container where Phaser canvas will be mounted */
+        .game-area {
+            position: relative;
+            width: 900px;
+            height: 900px;
+            margin: 12px auto 24px auto;
+            background: #050505;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
         }
 
         #target-indicator {
@@ -51,24 +73,30 @@
             align-items: center;
             justify-content: center;
             font-size: 14px;
+            color: #ddd;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 10px;
+            border-radius: 6px;
+            pointer-events: none;
         }
 
         #feedback-log {
-            height: 100px;
-            overflow-y: hidden;
+            height: 80px;
+            overflow-y: auto;
             text-align: center;
+            margin-top: 6px;
         }
 
         .perfect {
-            color: yellow;
+            color: #ffd700;
         }
 
         .ok {
-            color: orange;
+            color: #ffa500;
         }
 
         .miss {
-            color: red;
+            color: #ff4d4d;
         }
     </style>
 </head>
@@ -76,9 +104,8 @@
 <body style="background-color: black; color: white; margin: 0;">
 
     <div id="app-root"></div>
-
-    <!-- Contenedor de prueba para Phaser -->
-    <div id="phaser-root" style="width:800px;height:600px;margin:20px auto;border:1px solid #333;background:#000"></div>
+    <!-- Phaser container: keep it in the DOM so startPhaser can mount the canvas here -->
+    <div id="phaser-root" style="width:800px;height:600px;margin:20px auto;display:block;box-sizing:border-box;"></div>
 
     <script type="module">
         console.log('Test page script starting...');

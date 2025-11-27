@@ -100,5 +100,8 @@ export function updateStatsFromGame(stats: PlayerStats, game: GameState): Player
     updated = addPlayTime(updated, game.currentTimeMs);
     if (game.precision >= 100) updated = addPerfectLevel(updated);
     // Aquí podrías usar propiedades como game.hits, game.misses si las tienes
+    updated = addHits(updated, stats.totalHits);
+    updated = addMisses(updated, stats.totalMisses);
+
     return incrementGamesPlayed(updated);
 }

@@ -22,7 +22,7 @@ export const SONG_TEST_LEVEL: SongDefinition = {
     // Ruta relativa desde la página de prueba `public/rhythmGameplay-test.html`.
     // Coloca tu archivo de audio en `public/assets/audio/` y usa el nombre aquí.
     // Ejemplo: './assets/audio/test-song.mp3'
-    audioUrl: './assets/audio/baterias.mp3',
+    audioUrl: './assets/audio/level1.mp3',
     tempos: [
 
         { id: 1, timeMs: 1490, judgementWindow: 'hit' },  // 1.49s [cite: 1]
