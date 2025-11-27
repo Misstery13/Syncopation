@@ -47,6 +47,7 @@ document.addEventListener('click', (event) => {
     // Clone the node to allow overlapping sounds if clicked rapidly
     const soundClone = btnSound.cloneNode() as HTMLAudioElement;
     soundClone.volume = btnSound.volume;
+    soundClone.muted = btnSound.muted;
     soundClone.play().catch(e => console.warn('Button sound blocked', e));
   }
 });
@@ -78,9 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const persisted = JSON.parse(saved);
     if (typeof persisted.volume === 'number') {
       volume.value = String(persisted.volume);
+
+      const normalized = persisted.volume / 100;
+      const muted = persisted.volume === 0;
+
       // Apply saved volume to global audio
-      menuMusic.volume = persisted.volume / 100;
-      btnSound.volume = persisted.volume / 100;
+      menuMusic.volume = normalized;
+      menuMusic.muted = muted;
+
+      btnSound.volume = normalized;
+      btnSound.muted = muted;
     }
     if (typeof persisted.difficulty === 'string') {
       difficulty.value = persisted.difficulty;
@@ -91,21 +99,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   saveBtn.addEventListener('click', () => {
+    const volumeValue = Number.parseInt(volume.value, 10);
+    const normalized = volumeValue / 100;
+    const muted = volumeValue === 0;
+
     const settings = {
-      volume: Number.parseInt(volume.value, 10),
+      volume: volumeValue,
       difficulty: difficulty.value,
       fullscreen: fullscreen.checked,
     };
 
     localStorage.setItem('gameSettings', JSON.stringify(settings));
 
-    if ((window as any).game?.sound) {
-      (window as any).game.sound.volume = settings.volume / 100;
+    // Si existe audio global de Phaser, aplicar también
+    const gameAny = (window as any).game;
+    if (gameAny?.sound) {
+      gameAny.sound.volume = normalized;
+      gameAny.sound.mute = muted;
     }
 
-    // Update global audio volume
-    menuMusic.volume = settings.volume / 100;
-    btnSound.volume = settings.volume / 100;
+    // Update global audio volume (menú + click)
+    menuMusic.volume = normalized;
+    menuMusic.muted = muted;
+
+    btnSound.volume = normalized;
+    btnSound.muted = muted;
 
     modal.hide();
   });

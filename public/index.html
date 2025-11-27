@@ -45,8 +45,8 @@
         </div>
 
         <div id="loginScreen" class="screen-container" style="display:none;">
-            <div class="level-selection-content">
-                <h2>Identifícate</h2>
+            <div class="card-panel login-panel">
+                <h2 class="auth-title">Identifícate</h2>
                 <form id="loginForm">
                     <input type="text" id="username" placeholder="Usuario" required>
                     <input type="password" id="password" placeholder="Contraseña" required>
@@ -59,6 +59,7 @@
                 </form>
             </div>
         </div>
+
 
         <div id="registerScreen" class="screen-container" style="display: none;">
             <div class="card-panel">
@@ -136,7 +137,7 @@
     <script src="stars.js"></script>
     <script type="module" src="../src/main.ts"></script>
 
-    <!-- Fallback mínimo para audio (reproduce música y SFX tras interacción si autoplay bloqueado) -->
+    <!--
     <script>
         // Fallback audio manager para cuando el bundle no haya inicializado audio.
         (function () {
@@ -198,6 +199,9 @@
             };
         })();
     </script>
+    -->
+
+
 </body>
 
 </html>
