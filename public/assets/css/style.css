@@ -794,3 +794,31 @@ ul.menu-options {
 .difficulty-expert {
     background: var(--diff-expert);
 }
+
+/* --- Pantalla de Login / Autenticación --- */
+.login-panel {
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-panel .auth-title {
+    font-size: 2.4rem;
+    margin-bottom: 20px;
+}
+
+/* Asegura que el formulario use todo el ancho de la tarjeta */
+.login-panel form {
+    width: 100%;
+}
+
+/* Inputs centrados y de tamaño cómodo */
+.login-panel input[type="text"],
+.login-panel input[type="password"] {
+    width: 100%;
+    max-width: 320px;
+}
