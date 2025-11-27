@@ -2,14 +2,20 @@
 import { initPlayerStats } from './statsPureMethods';
 import { PlayerStats } from './statsTypes';
 
-// Clave de almacenamiento (puede venir del estado global del juego)
-const STORAGE_KEY = 'playerStats';
+/**
+ * Obtiene la clave de almacenamiento dinámica basada en el usuario actual.
+ */
+function getStorageKey(): string {
+  const username = sessionStorage.getItem('currentUser') || 'guest';
+  return `playerStats_${username}`;
+}
 
 /**
  * Carga las estadísticas del jugador desde almacenamiento local o inicializa nuevas.
  */
-function loadPlayerStats(): PlayerStats {
-  const data = localStorage.getItem(STORAGE_KEY);
+export function loadPlayerStats(): PlayerStats {
+  const key = getStorageKey();
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : initPlayerStats();
 }
 
@@ -18,7 +24,8 @@ function loadPlayerStats(): PlayerStats {
  */
 export function setPlayerStats(stats: PlayerStats): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+    const key = getStorageKey();
+    localStorage.setItem(key, JSON.stringify(stats));
   } catch (e) { console.warn('Could not persist player stats', e); }
 }
 

@@ -5,7 +5,7 @@ import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameS
 import { SONG_TEST_LEVEL } from './gameplayTypes';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
 import { updateStatsFromGame, initPlayerStats } from './statsPureMethods';
-import { setPlayerStats, initStatsScreen } from './statsController';
+import { setPlayerStats, initStatsScreen, loadPlayerStats } from './statsController';
 
 // --- CONFIGURACIÓN ---
 const THROW_TRAVEL_MS = 1200;
@@ -187,8 +187,7 @@ function finishGameLogic() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
     try {
-        const raw = localStorage.getItem('playerStats');
-        const currentStats = raw ? JSON.parse(raw) : initPlayerStats();
+        const currentStats = loadPlayerStats();
 
         const successfulHits = (estadoActual.rhythm.hits['hit'] || 0) + (estadoActual.rhythm.hits['delay'] || 0);
         const missedHits = (estadoActual.rhythm.hits['miss'] || 0) || 0;
