@@ -1,18 +1,32 @@
-// Luego se creará una carpeta para controladores específicos para este archivo.
-
 // src/CARLOS/statsController.ts
 import { initPlayerStats } from './statsPureMethods';
 import { PlayerStats } from './statsTypes';
 
-// Clave de almacenamiento (puede venir del estado global del juego)
-const STORAGE_KEY = 'playerStats';
+/**
+ * Obtiene la clave de almacenamiento dinámica basada en el usuario actual.
+ */
+function getStorageKey(): string {
+  const username = sessionStorage.getItem('currentUser') || 'guest';
+  return `playerStats_${username}`;
+}
 
 /**
  * Carga las estadísticas del jugador desde almacenamiento local o inicializa nuevas.
  */
-function loadPlayerStats(): PlayerStats {
-  const data = localStorage.getItem(STORAGE_KEY);
+export function loadPlayerStats(): PlayerStats {
+  const key = getStorageKey();
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : initPlayerStats();
+}
+
+/**
+ * Persiste las estadísticas del jugador en almacenamiento local.
+ */
+export function setPlayerStats(stats: PlayerStats): void {
+  try {
+    const key = getStorageKey();
+    localStorage.setItem(key, JSON.stringify(stats));
+  } catch (e) { console.warn('Could not persist player stats', e); }
 }
 
 /**
@@ -25,7 +39,6 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
   container.innerHTML = `
     <div class="header">
       <h2>Estadísticas del Jugador</h2>
-      <button id="btnBack" class="back-btn">Volver</button>
     </div>
 
     <div class="stats-grid">
@@ -54,6 +67,7 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
         <strong>${stats.gamesPlayed}</strong>
       </div>
     </div>
+    <button id="btnBack" class="back-btn">Volver</button>
   `;
 
   // Evento para volver al menú principal
@@ -69,9 +83,18 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
  */
 export function initStatsScreen(): void {
   const root = document.getElementById('app-root'); // o tu contenedor principal
-  if (!root) return;
+  if (!root) {
+    console.error('[statsController] app-root not found');
+    return;
+  }
 
-  const stats = loadPlayerStats();
-  root.innerHTML = ''; // limpia contenido anterior
-  root.appendChild(renderStatsView(stats));
+  try {
+    console.debug('[statsController] Loading player stats');
+    const stats = loadPlayerStats();
+    root.innerHTML = ''; // limpia contenido anterior
+    root.appendChild(renderStatsView(stats));
+    console.debug('[statsController] Stats screen rendered');
+  } catch (err) {
+    console.error('[statsController] Error rendering stats screen', err);
+  }
 }

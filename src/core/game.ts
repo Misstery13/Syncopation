@@ -1,8 +1,8 @@
 import { GameState, GameConfig } from '../types/index';
 import { setGameStart, setGameStoped, setLevelUp, addPoint } from './domain';
+import { startPhaser } from './phaserBridge';
 
 // Clase principal del juego
-
 
 /**
  * Aquí hay muchas funciones imperativas que manejan el ciclo de vida del juego,
@@ -81,6 +81,25 @@ export class Game {
         // 2. Llamada a la Función Pura del Núcleo para obtener el NUEVO estado
         // Note que se llama a la función pura y se asigna el resultado (el nuevo objeto)
         this.gameState = setGameStart(this.gameState);
+
+        // Iniciar el renderer Phaser para visualizar sprites (usa assets/images/sprites)
+        try {
+            startPhaser({
+                parentId: 'phaser-root',
+                // Pasamos los tres sprites que mencionaste. Ajusta nombres si son distintos.
+                sprites: [
+                    { key: 'Kimu-Idle', path: './assets/images/sprites/Kimu-Idle.png', frameWidth: 64, frameHeight: 64, frameRate: 8, loop: true },
+                    { key: 'Kimu-punch-right', path: './assets/images/sprites/Kimu-punch-right.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
+                    { key: 'Kimu-punch-left', path: './assets/images/sprites/Kimu-punch-left.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
+                ],
+                frameWidth: 64,
+                frameHeight: 64,
+                frameRate: 10,
+                scale: 2
+            });
+        } catch (err) {
+            console.warn('Error iniciando Phaser renderer', err);
+        }
 
         // Aquí puedes agregar tu lógica del juego
         this.gameLoop();

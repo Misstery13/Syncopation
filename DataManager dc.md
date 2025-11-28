@@ -1,8 +1,3 @@
-Aquí tienes un documento en Markdown completo y estructurado que resume todo el rol y funcionalidades del `DataManager` según lo hemos diseñado.
-
-Puedes copiar y pegar esto directamente en tu repositorio o documentación del proyecto.
-
------
 
 # Documentación Técnica: Game Data Manager
 

@@ -1,54 +1,193 @@
 import { Game } from './core/game';
 import LoginManager from './ui/loginManager';
+import { MainMenuManager } from './scenes/DIANA/mainMenuManager';
 
-
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal } from "bootstrap";
-
-// Inicializar el sistema de login
-const loginManager: LoginManager = new LoginManager();
-loginManager.init();
-
-// Esperar a que se complete el login antes de iniciar el juego
-window.addEventListener('startGame', () => {
-    // Inicializar el juego
-    const game: Game = new Game();
-    game.start();
+// --- 1. INICIALIZACIÓN DEL LOGIN Y MENÚ ---
+let loginManager: LoginManager;
+const mainMenu = new MainMenuManager({
+  onLogout: () => {
+    loginManager.resetToLogin();
+  },
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveConfigBtn")!;
-  const volume = document.getElementById("volumeRange") as HTMLInputElement;
-  const difficulty = document.getElementById("difficultySelect") as HTMLSelectElement;
-  const fullscreen = document.getElementById("fullscreenToggle") as HTMLInputElement;
+loginManager = new LoginManager({
+  onAuthSuccess: (payload) => {
+    mainMenu.show(payload);
+  },
+});
+
+loginManager.init();
+
+// --- 2. SISTEMA DE AUDIO (Música y Efectos) ---
+const menuMusic = new Audio('assets/audio/test.mp3');
+menuMusic.loop = true;
+menuMusic.volume = 0.5; // Default volume
+// Expose to window so other modules can pause/resume it when needed
+(window as any).menuMusic = menuMusic;
+
+// Intentar reproducir de inmediato
+menuMusic.play().catch(() => {
+  console.log('Autoplay bloqueado. Esperando interacción del usuario.');
+  const playOnInteraction = () => {
+    menuMusic.play();
+    document.removeEventListener('click', playOnInteraction);
+    document.removeEventListener('keydown', playOnInteraction);
+  };
+  document.addEventListener('click', playOnInteraction);
+  document.addEventListener('keydown', playOnInteraction);
+});
+
+const btnSound = new Audio('assets/audio/sfx/btnSound.mp3');
+btnSound.volume = 0.5;
+
+// Manejo global de sonidos de botones
+document.addEventListener('click', (event) => {
+  const target = event.target as HTMLElement;
+  const clickable = target.closest('button, .btn, .menu-option');
+
+  if (clickable) {
+    const soundClone = btnSound.cloneNode() as HTMLAudioElement;
+    soundClone.volume = btnSound.volume;
+    soundClone.muted = btnSound.muted;
+    soundClone.play().catch(e => console.warn('Button sound blocked', e));
+  }
+});
+
+// Evento global para iniciar el juego
+window.addEventListener('startGame', () => {
+  menuMusic.pause();
+  menuMusic.currentTime = 0;
+  const game: Game = new Game();
+  game.start();
+});
+
+// --- Helper para Pantalla Completa ---
+function applyFullscreen(enabled: boolean) {
+  const elem = document.documentElement;
+
+  if (enabled) {
+    if (!document.fullscreenElement && elem.requestFullscreen) {
+      elem.requestFullscreen().catch((e) => {
+        console.warn('No se pudo activar pantalla completa', e);
+      });
+    }
+  } else {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch((e) => {
+        console.warn('No se pudo salir de pantalla completa', e);
+      });
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  
+  // A. Referencias a elementos del DOM
+  const modalEl = document.getElementById('configModal');
+  const saveBtn = document.getElementById('saveConfigBtn') as HTMLButtonElement | null;
+  const volume = document.getElementById('volumeRange') as HTMLInputElement | null;
+  const difficulty = document.getElementById('difficultySelect') as HTMLSelectElement | null;
+  const fullscreen = document.getElementById('fullscreenToggle') as HTMLInputElement | null;
+  const levelOverlay = document.getElementById('levelSelectionOverlay'); // Referencia al Overlay de Niveles
+
+  // B. Lógica de Navegación (Overlay de Niveles)
+  // Usamos delegación de eventos en el body para detectar clicks dinámicos
+  document.body.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // ABRIR: Si click en "Selección de Niveles" (botón del Hub)
+    if (target.closest('[data-scene-id="angel-levels"]')) {
+        if (levelOverlay) {
+            levelOverlay.style.display = 'flex'; // 'flex' activa el centrado y el glass
+        }
+    }
+
+    // CERRAR: Si click en "Volver al Menú" (dentro del overlay)
+    if (target.closest('[data-action="navigate-back"]')) {
+        if (levelOverlay) {
+            levelOverlay.style.display = 'none';
+        }
+    }
+    
+    // JUGAR: Si click en "Jugar" (dentro del overlay)
+    if (target.closest('[data-action="play-level"]')) {
+        // Aquí puedes disparar el evento para iniciar el juego real
+        const startEvent = new Event('startGame');
+        window.dispatchEvent(startEvent);
+        // Opcional: cerrar el overlay
+        if (levelOverlay) levelOverlay.style.display = 'none';
+    }
+  });
+
+  // C. Lógica del Modal de Configuración
+  if (!modalEl || !saveBtn || !volume) return;
+
+  const bootstrapGlobal = (window as any).bootstrap;
+  const modal = bootstrapGlobal?.Modal?.getOrCreateInstance(modalEl);
 
   // Cargar configuración guardada
-  const saved = localStorage.getItem("gameSettings");
+  const saved = localStorage.getItem('gameSettings');
   if (saved) {
-    const s = JSON.parse(saved);
-    volume.value = s.volume;
-    difficulty.value = s.difficulty;
-    fullscreen.checked = s.fullscreen;
+    const persisted = JSON.parse(saved);
+    if (typeof persisted.volume === 'number') {
+      volume.value = String(persisted.volume);
+
+      const normalized = persisted.volume / 100;
+      const muted = persisted.volume === 0;
+
+      // Apply saved volume to global audio
+      menuMusic.volume = normalized;
+      menuMusic.muted = muted;
+
+      btnSound.volume = normalized;
+      btnSound.muted = muted;
+    }
+    if (difficulty && typeof persisted.difficulty === 'string') {
+      difficulty.value = persisted.difficulty;
+    }
+    if (fullscreen && typeof persisted.fullscreen === 'boolean') {
+      fullscreen.checked = persisted.fullscreen;
+      // Aplicar estado de pantalla completa guardado
+      applyFullscreen(persisted.fullscreen);
+    }
   }
 
-  // Guardar configuración
-  saveBtn.addEventListener("click", () => {
+  // Si el usuario sale con ESC, sincronizamos la casilla
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fullscreen.checked = isFs;
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const volumeValue = Number.parseInt(volume.value, 10);
+    const normalized = volumeValue / 100;
+    const muted = volumeValue === 0;
+
     const settings = {
-      volume: parseInt(volume.value),
+      volume: volumeValue,
       difficulty: difficulty.value,
       fullscreen: fullscreen.checked,
     };
 
-    localStorage.setItem("gameSettings", JSON.stringify(settings));
+    localStorage.setItem('gameSettings', JSON.stringify(settings));
 
-    // Aplicar al juego si está cargado
-    if ((window as any).game?.sound) {
-      (window as any).game.sound.volume = settings.volume / 100;
+    // Si existe audio global de Phaser, aplicar también
+    const gameAny = (window as any).game;
+    if (gameAny?.sound) {
+      gameAny.sound.volume = normalized;
+      gameAny.sound.mute = muted;
     }
 
-    // Cerrar modal usando Bootstrap API
-    const modalEl = document.getElementById('configModal')!;
-    const modal = Modal.getInstance(modalEl);
-    modal?.hide();
+    // Update global audio volume (menú + click)
+    menuMusic.volume = normalized;
+    menuMusic.muted = muted;
+
+    btnSound.volume = normalized;
+    btnSound.muted = muted;
+
+    // Aplicar / quitar pantalla completa según la casilla
+    applyFullscreen(settings.fullscreen);
+
+    if (modal) modal.hide();
   });
 });

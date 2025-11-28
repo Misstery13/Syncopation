@@ -1,10 +1,8 @@
 # Dependencias
-node_modules/
-package-lock.json
 
 # Archivos de build
+node_modules/
 dist/
-build/
 src/scenes/CARLOS/build/
 
 # Editor
@@ -12,7 +10,7 @@ src/scenes/CARLOS/build/
 .idea/
 
 # Sistema
-.DS_Store
+node_modules/
 Thumbs.db
 
 # Logs
@@ -23,5 +21,3 @@ npm-debug.log*
 .env
 .env.local
 
-
-node_modules/
