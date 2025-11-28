@@ -23,7 +23,7 @@ const menuMusic = new Audio('assets/audio/test.mp3');
 menuMusic.loop = true;
 menuMusic.volume = 0.5;
 
-// Intentar reproducir inmediatamente (con fallback si el navegador bloquea autoplay)
+// Intentar reproducir de inmediato
 menuMusic.play().catch(() => {
   console.log('Autoplay bloqueado. Esperando interacción del usuario.');
   const playOnInteraction = () => {
@@ -46,7 +46,8 @@ document.addEventListener('click', (event) => {
   if (clickable) {
     const soundClone = btnSound.cloneNode() as HTMLAudioElement;
     soundClone.volume = btnSound.volume;
-    soundClone.play().catch(e => console.warn('Sonido bloqueado', e));
+    soundClone.muted = btnSound.muted;
+    soundClone.play().catch(e => console.warn('Button sound blocked', e));
   }
 });
 
@@ -58,7 +59,25 @@ window.addEventListener('startGame', () => {
   game.start();
 });
 
-// --- 3. LÓGICA DEL DOM (Configuración y Navegación UI) ---
+// --- Helper para Pantalla Completa ---
+function applyFullscreen(enabled: boolean) {
+  const elem = document.documentElement;
+
+  if (enabled) {
+    if (!document.fullscreenElement && elem.requestFullscreen) {
+      elem.requestFullscreen().catch((e) => {
+        console.warn('No se pudo activar pantalla completa', e);
+      });
+    }
+  } else {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch((e) => {
+        console.warn('No se pudo salir de pantalla completa', e);
+      });
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   
   // A. Referencias a elementos del DOM
@@ -110,35 +129,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const persisted = JSON.parse(saved);
     if (typeof persisted.volume === 'number') {
       volume.value = String(persisted.volume);
-      menuMusic.volume = persisted.volume / 100;
-      btnSound.volume = persisted.volume / 100;
+
+      const normalized = persisted.volume / 100;
+      const muted = persisted.volume === 0;
+
+      // Apply saved volume to global audio
+      menuMusic.volume = normalized;
+      menuMusic.muted = muted;
+
+      btnSound.volume = normalized;
+      btnSound.muted = muted;
     }
     if (difficulty && typeof persisted.difficulty === 'string') {
       difficulty.value = persisted.difficulty;
     }
     if (fullscreen && typeof persisted.fullscreen === 'boolean') {
       fullscreen.checked = persisted.fullscreen;
+      // Aplicar estado de pantalla completa guardado
+      applyFullscreen(persisted.fullscreen);
     }
   }
 
-  // Guardar configuración
+  // Si el usuario sale con ESC, sincronizamos la casilla
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fullscreen.checked = isFs;
+  });
+
   saveBtn.addEventListener('click', () => {
+    const volumeValue = Number.parseInt(volume.value, 10);
+    const normalized = volumeValue / 100;
+    const muted = volumeValue === 0;
+
     const settings = {
-      volume: Number.parseInt(volume.value, 10),
-      difficulty: difficulty ? difficulty.value : 'normal',
-      fullscreen: fullscreen ? fullscreen.checked : false,
+      volume: volumeValue,
+      difficulty: difficulty.value,
+      fullscreen: fullscreen.checked,
     };
 
     localStorage.setItem('gameSettings', JSON.stringify(settings));
 
-    // Actualizar volumen del juego si ya existe la instancia
-    if ((window as any).game?.sound) {
-      (window as any).game.sound.volume = settings.volume / 100;
+    // Si existe audio global de Phaser, aplicar también
+    const gameAny = (window as any).game;
+    if (gameAny?.sound) {
+      gameAny.sound.volume = normalized;
+      gameAny.sound.mute = muted;
     }
 
-    // Actualizar volumen del menú actual
-    menuMusic.volume = settings.volume / 100;
-    btnSound.volume = settings.volume / 100;
+    // Update global audio volume (menú + click)
+    menuMusic.volume = normalized;
+    menuMusic.muted = muted;
+
+    btnSound.volume = normalized;
+    btnSound.muted = muted;
+
+    // Aplicar / quitar pantalla completa según la casilla
+    applyFullscreen(settings.fullscreen);
 
     if (modal) modal.hide();
   });
