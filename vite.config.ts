@@ -12,12 +12,17 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   root: 'public',
   base: './',
+  publicDir: false, // Disable automatic public dir copying
   plugins: [
     viteStaticCopy({
       targets: [
         {
-          src: 'assets/**/*',
-          dest: 'assets'
+          src: 'assets/audio/**/*',
+          dest: 'assets/audio'
+        },
+        {
+          src: 'assets/images/**/*',
+          dest: 'assets/images'
         }
       ]
     })
