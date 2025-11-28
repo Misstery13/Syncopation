@@ -14,7 +14,7 @@ Este proyecto utiliza un stack moderno para desarrollo de juegos web:
 
 ## � Jugar Ahora
 
-¡Escanea este código QR para jugar directamente en tu móvil!
+¡Escanea este código QR para jugar directamente en la web!
 
 ![QR Code](public/assets/images/qr-code.png)
 
