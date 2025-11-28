@@ -21,6 +21,8 @@ loginManager.init();
 const menuMusic = new Audio('assets/audio/test.mp3');
 menuMusic.loop = true;
 menuMusic.volume = 0.5; // Default volume
+// Expose to window so other modules can pause/resume it when needed
+(window as any).menuMusic = menuMusic;
 
 // Intentar reproducir de inmediato
 menuMusic.play().catch(() => {

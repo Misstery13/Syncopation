@@ -32,9 +32,17 @@ let throwablesGroup: Phaser.GameObjects.Group | null = null;
 
 export function startPhaser(cfg: PhaserRendererConfig = {}) {
     const win = window as any;
-    if (win.__phaserGame) return win.__phaserGame;
+    // Map de juegos por parentId para soportar múltiples contenedores
+    if (!win.__phaserGames) win.__phaserGames = {};
 
     const parentId = cfg.parentId ?? 'phaser-root';
+    // Si ya existe un juego para este parent, devolvemos esa instancia
+    if (win.__phaserGames[parentId]) {
+        // Keep a convenient reference for legacy code
+        win.__phaserGame = win.__phaserGames[parentId];
+        return win.__phaserGames[parentId];
+    }
+
     let parentEl = document.getElementById(parentId);
     if (!parentEl) {
         parentEl = document.createElement('div');
@@ -44,9 +52,6 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
         document.body.appendChild(parentEl);
     }
 
-    const existingCanvas = document.getElementById('gameCanvas');
-    if (existingCanvas) existingCanvas.style.display = 'none';
-
     // Defaults
     const spriteKey = cfg.spriteKey ?? 'player';
     const spritePath = cfg.spritePath ?? '/assets/images/sprites/Kimu-Idle.png';
@@ -55,8 +60,16 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
     const frameCount = cfg.frameCount ?? 8;
     const frameRate = cfg.frameRate ?? 10;
 
+    // Calcular tamaño desde el parent si no se provee
+    const parentRect = parentEl.getBoundingClientRect();
+    const width = cfg.width ?? Math.max(300, Math.round(parentRect.width));
+    const height = cfg.height ?? Math.max(200, Math.round(parentRect.height));
+
+    const centerX = cfg.x ?? Math.round(width / 2);
+    const centerY = cfg.y ?? Math.round(height / 2);
+
     const scene: any = {
-        key: 'MainScene',
+        key: `MainScene_${parentId}`,
         preload: function (this: Phaser.Scene) {
             const sprites = (cfg as any).sprites ?? [
                 { key: spriteKey, path: spritePath, frameWidth: frameW, frameHeight: frameH, frameCount, frameRate }
@@ -93,7 +106,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
                 const rate = s.frameRate ?? frameRate;
                 const animKey = `${s.key}-anim`;
 
-                if (finalCount > 1) {
+                if (finalCount > 1 && !this.anims.exists(animKey)) {
                     this.anims.create({
                         key: animKey,
                         frames: this.anims.generateFrameNumbers(s.key, { start: 0, end: finalCount - 1 }),
@@ -103,13 +116,13 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
                 }
             }
 
-            // Crear Sprite Principal (Kimu)
+            // Crear Sprite Principal (Kimu) centrado en el parent
             const idle = sprites.find((x: any) => /idle/i.test(x.key));
             const main = idle ?? sprites[0];
-            const x = cfg.x ?? this.scale.width / 2;
-            const y = cfg.y ?? this.scale.height / 2;
-            const sprite = this.add.sprite(x, y, main.key).setScale(cfg.scale ?? 1);
-            sprite.play(`${main.key}-anim`);
+            const sprite = this.add.sprite(centerX, centerY, main.key).setScale(cfg.scale ?? 1);
+            if (this.anims.exists(`${main.key}-anim`)) {
+                sprite.play(`${main.key}-anim`);
+            }
             sprite.setName('character');
 
             sprite.on('animationcomplete', (anim: Phaser.Animations.Animation) => {
@@ -118,22 +131,34 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
                 }
             });
 
-            // --- OPTIMIZACIÓN DE MEMORIA: OBJECT POOL ---
-            // En lugar de instanciar uno por uno, creamos un grupo de reciclaje.
-            // Si el juego es muy rápido, 50 bolas deberían ser suficientes buffer.
+            // Object pool: especificamos classType y un createCallback para inicializar correctamente
             throwablesGroup = this.add.group({
+                classType: Phaser.GameObjects.Sprite as any,
                 defaultKey: 'throwable',
                 maxSize: 50,
-                runChildUpdate: false
+                runChildUpdate: false,
+                createCallback: (obj: Phaser.GameObjects.GameObject) => {
+                    try {
+                        const s = obj as Phaser.GameObjects.Sprite;
+                        s.setActive(false).setVisible(false);
+                        s.setScale(0.4);
+                        s.setDepth(1000);
+                    } catch (e) { }
+                }
             });
+
+            // Attach group to scene for easy lookup by spawn/handle functions
+            try {
+                (this as any).__throwablesGroup = throwablesGroup;
+            } catch (e) { }
         },
         update: function (this: Phaser.Scene, _time: number, _delta: number) { },
     } as any;
 
     const phaserConfig: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
-        width: cfg.width ?? window.innerWidth,
-        height: cfg.height ?? window.innerHeight,
+        width,
+        height,
         parent: parentId,
         backgroundColor: '#000000',
         scene,
@@ -141,27 +166,52 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
     };
 
     const game = new Phaser.Game(phaserConfig);
+    win.__phaserGames[parentId] = game;
+    // Also set a default reference for older callers expecting a single game
     win.__phaserGame = game;
     return game;
 }
 
 export function playCharacterAnimation(animKey: string) {
     const win = window as any;
-    const game: Phaser.Game | undefined = win.__phaserGame;
-    if (!game) return false;
-    const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
-    if (!scene) return false;
-
-    const spriteObj = scene.children.getByName('character') as Phaser.GameObjects.Sprite | undefined;
-    if (!spriteObj) return false;
-
-    const finalKey = animKey.endsWith('-anim') ? animKey : `${animKey}-anim`;
-    try {
-        spriteObj.play(finalKey);
-        return true;
-    } catch (e) {
-        return false;
+    // Try legacy single-game pointer first
+    if (win.__phaserGame) {
+        try {
+            const game: Phaser.Game = win.__phaserGame;
+            for (const k of Object.keys(game.scene.keys)) {
+                const scene = game.scene.keys[k] as Phaser.Scene | undefined;
+                if (!scene) continue;
+                const spriteObj = scene.children.getByName('character') as Phaser.GameObjects.Sprite | undefined;
+                if (spriteObj) {
+                    const finalKey = animKey.endsWith('-anim') ? animKey : `${animKey}-anim`;
+                    spriteObj.play(finalKey);
+                    return true;
+                }
+            }
+        } catch (e) { }
     }
+
+    // Otherwise search across registered games
+    if (win.__phaserGames) {
+        for (const pid of Object.keys(win.__phaserGames)) {
+            try {
+                const game: Phaser.Game = win.__phaserGames[pid];
+                if (!game) continue;
+                for (const k of Object.keys(game.scene.keys)) {
+                    const scene = game.scene.keys[k] as Phaser.Scene | undefined;
+                    if (!scene) continue;
+                    const spriteObj = scene.children.getByName('character') as Phaser.GameObjects.Sprite | undefined;
+                    if (spriteObj) {
+                        const finalKey = animKey.endsWith('-anim') ? animKey : `${animKey}-anim`;
+                        spriteObj.play(finalKey);
+                        return true;
+                    }
+                }
+            } catch (e) { }
+        }
+    }
+
+    return false;
 }
 
 // --- MÓDULOS DE FÍSICA Y REACCIÓN ---
@@ -172,10 +222,31 @@ export function playCharacterAnimation(animKey: string) {
  */
 export function spawnThrowable(duration: number = 600) {
     const win = window as any;
-    const game: Phaser.Game | undefined = win.__phaserGame;
-    if (!game || !throwablesGroup) return; // Si no hay grupo, no podemos hacer nada
-
-    const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
+    // Find the active scene that contains our character sprite. Prefer scenes that have the 'character' child.
+    let scene: Phaser.Scene | undefined;
+    if (win.__phaserGame) {
+        const g: Phaser.Game = win.__phaserGame;
+        for (const k of Object.keys(g.scene.keys)) {
+            const s = g.scene.keys[k] as Phaser.Scene | undefined;
+            if (!s) continue;
+            if (s.children.getByName('character')) { scene = s; break; }
+            if (!scene) scene = s;
+        }
+    }
+    if (!scene && win.__phaserGames) {
+        for (const pid of Object.keys(win.__phaserGames)) {
+            try {
+                const g: Phaser.Game = win.__phaserGames[pid];
+                for (const k of Object.keys(g.scene.keys)) {
+                    const s = g.scene.keys[k] as Phaser.Scene | undefined;
+                    if (!s) continue;
+                    if (s.children.getByName('character')) { scene = s; break; }
+                    if (!scene) scene = s;
+                }
+                if (scene) break;
+            } catch (e) { }
+        }
+    }
     if (!scene) return;
 
     // Configuración de posiciones
@@ -185,13 +256,39 @@ export function spawnThrowable(duration: number = 600) {
     const baseY = character ? character.y : scene.scale.height / 2;
 
     // --- OBTENER DEL POOL ---
+    // Prefer group attached to the scene; otherwise create and attach one
+    let sceneGroup: Phaser.GameObjects.Group | undefined = (scene as any).__throwablesGroup as Phaser.GameObjects.Group | undefined;
+    if (!sceneGroup) {
+        sceneGroup = scene.add.group({
+            classType: Phaser.GameObjects.Sprite as any,
+            defaultKey: 'throwable',
+            maxSize: 50,
+            runChildUpdate: false,
+        });
+        try { (scene as any).__throwablesGroup = sceneGroup; } catch (e) { }
+    }
+
     // 'get' busca uno inactivo o crea uno nuevo si no hay libres y no excedimos el maxSize
-    const sprite = throwablesGroup.get(startX, baseY) as Phaser.GameObjects.Sprite;
+    const sprite = sceneGroup.get(startX, baseY) as Phaser.GameObjects.Sprite | undefined;
+
+    // Debug info: ayuda a diagnosticar aparición/posición de los throwables
+    try {
+        // eslint-disable-next-line no-console
+        console.debug('spawnThrowable', { startX, baseY, endX, activePoolSize: sceneGroup ? (sceneGroup.getLength ? sceneGroup.getLength() : undefined) : undefined });
+    } catch (e) { }
 
     if (!sprite) {
         console.warn('Pool de throwables lleno o no inicializado');
         return;
     }
+
+    // Asegurar que el sprite tenga la textura correcta
+    try {
+        if (!sprite.texture || sprite.texture.key !== 'throwable') {
+            sprite.setTexture('throwable');
+        }
+        sprite.setOrigin(0.5, 0.5);
+    } catch (e) { }
 
     // --- RESETEO PROFUNDO DE ESTADO ---
     // Como el sprite es reciclado, puede tener propiedades "sucias" de su vida anterior (hit/miss)
@@ -241,16 +338,40 @@ export function spawnThrowable(duration: number = 600) {
  * Busca la bola ACTIVA más cercana y aplica la física.
  */
 export function handleThrowableReaction(result: 'hit' | 'delay' | 'miss') {
+    // Similar to spawnThrowable: find the scene that contains the character and use its group
     const win = window as any;
-    const game: Phaser.Game | undefined = win.__phaserGame;
-    if (!game || !throwablesGroup) return;
-
-    const scene = game.scene.keys['MainScene'] as Phaser.Scene | undefined;
+    let scene: Phaser.Scene | undefined;
+    if (win.__phaserGame) {
+        const g: Phaser.Game = win.__phaserGame;
+        for (const k of Object.keys(g.scene.keys)) {
+            const s = g.scene.keys[k] as Phaser.Scene | undefined;
+            if (!s) continue;
+            if (s.children.getByName('character')) { scene = s; break; }
+            if (!scene) scene = s;
+        }
+    }
+    if (!scene && win.__phaserGames) {
+        for (const pid of Object.keys(win.__phaserGames)) {
+            try {
+                const g: Phaser.Game = win.__phaserGames[pid];
+                for (const k of Object.keys(g.scene.keys)) {
+                    const s = g.scene.keys[k] as Phaser.Scene | undefined;
+                    if (!s) continue;
+                    if (s.children.getByName('character')) { scene = s; break; }
+                    if (!scene) scene = s;
+                }
+                if (scene) break;
+            } catch (e) { }
+        }
+    }
     if (!scene) return;
 
-    // Obtener todas las bolas activas del grupo
+    // Obtener todas las bolas activas del grupo del scene
+    const sceneGroup: Phaser.GameObjects.Group | undefined = (scene as any).__throwablesGroup as Phaser.GameObjects.Group | undefined;
+    if (!sceneGroup) return;
+
     // getChildren() devuelve array de GameObjects, filtramos los activos y visibles
-    const activeThrowables = throwablesGroup.getChildren().filter(
+    const activeThrowables = sceneGroup.getChildren().filter(
         (t: any) => t.active && t.visible
     ) as Phaser.GameObjects.Sprite[];
 

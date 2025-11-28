@@ -1,8 +1,9 @@
 import { LevelSelectManager } from '../ANGEL/levelScreenManager';
 import { initStatsScreen } from '../CARLOS/statsController';
 import { registerCreditsNavigation, openCredits } from '../SAID/saidScreen';
-import { initRhythmScreen } from '../CARLOS/gameplayController';
-import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
+// import { initRhythmScreen } from '../CARLOS/gameplayController';
+// import { SONG_TEST_LEVEL } from '../CARLOS/gameplayTypes';
+import { loadKarateKatLevel } from '../CARLOS/karateLevelLoader';
 import type { User } from '../../types';
 
 // Nota: El CSS se carga desde public/assets/css/style.css (index.html).
@@ -285,14 +286,20 @@ export class MainMenuManager {
     manager
       .show()
       .then((selection) => {
-        // Al seleccionar "Jugar" navegamos a la página de test del gameplay.
-        // Si más adelante queremos pasar información podemos añadir query params.
+        // Al seleccionar "Jugar" abrimos la pantalla de gameplay dentro de la app
         try {
-          const target = '/rhythmGameplay-test.html';
-          window.location.href = target;
+          this.clearContent();
+          // Hacer que el contenido ocupe todo el espacio y centre el contenido
+          this.appRoot.style.width = '100%';
+          this.appRoot.style.maxWidth = '100%';
+          this.appRoot.style.display = 'flex';
+          this.appRoot.style.alignItems = 'center';
+          this.appRoot.style.justifyContent = 'center';
+
+          // Abrir la ventana del nivel dentro de la misma página
+          loadKarateKatLevel(selection, () => this.resumeFromExternalNavigation());
         } catch (e) {
-          // Fallback: mostrar mensaje en UI
-          this.showPlaceholder(`No se pudo abrir la página de prueba para ${selection.levelId}.`);
+          this.showPlaceholder(`No se pudo cargar la pantalla de prueba para ${selection.levelId}.`);
         }
       })
       .catch(() => {
