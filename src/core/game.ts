@@ -4,7 +4,6 @@ import { startPhaser } from './phaserBridge';
 
 // Clase principal del juego
 
-
 /**
  * Aquí hay muchas funciones imperativas que manejan el ciclo de vida del juego,
  * pero todas las modificaciones al estado del juego se hacen a través de
