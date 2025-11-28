@@ -43,27 +43,27 @@ function renderStatsView(stats: PlayerStats): HTMLElement {
 
     <div class="stats-grid">
       <div class="stat-item">
-        <span>Total Score</span>
+        <span>Puntaje Total</span>
         <strong>${stats.totalScore}</strong>
       </div>
       <div class="stat-item">
-        <span>Total Hits</span>
+        <span>Golpes Totales</span>
         <strong>${stats.totalHits}</strong>
       </div>
       <div class="stat-item">
-        <span>Total Misses</span>
+        <span>Fallos Totales</span>
         <strong>${stats.totalMisses}</strong>
       </div>
       <div class="stat-item">
-        <span>Perfect Levels</span>
+        <span>Niveles Perfectos</span>
         <strong>${stats.perfectLevels}</strong>
       </div>
       <div class="stat-item">
-        <span>Total Play Time</span>
+        <span>Tiempo Total de Juego</span>
         <strong>${(stats.totalPlayTimeMs / 1000).toFixed(1)}s</strong>
       </div>
       <div class="stat-item">
-        <span>Games Played</span>
+        <span>Partidas Jugadas</span>
         <strong>${stats.gamesPlayed}</strong>
       </div>
     </div>

@@ -56,7 +56,7 @@ export function loadKarateKatLevel(
 
     wrapper.innerHTML = `
     <div class="karate-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#090909;border-bottom:1px solid rgba(255,255,255,0.04)">
-      <h2 style="margin:0;color:#fff">${song.idSong}</h2>
+      <h2 style="margin:0;color:#fff">${song.idSong.replace(/level_/i, 'Nivel ').replace(/_/g, ' ')}</h2>
       <div>
         <button id="karate-back-btn" class="btn-secondary" style="padding:8px 12px">Volver</button>
       </div>
@@ -155,49 +155,49 @@ export function loadKarateKatLevel(
             wrapper.insertBefore(statsEl, karateContent);
             // Ensure stats occupy full width
             statsEl.style.width = '100%';
-statsEl.style.display = 'flex';       // Aseguramos que sea flex
-statsEl.style.flexWrap = 'wrap';      // <--- IMPORTANTE: Si no caben, bajan
-statsEl.style.justifyContent = 'center'; // Centrado para que se vea bien
-statsEl.style.gap = '5px';
+            statsEl.style.display = 'flex';       // Aseguramos que sea flex
+            statsEl.style.flexWrap = 'wrap';      // <--- IMPORTANTE: Si no caben, bajan
+            statsEl.style.justifyContent = 'center'; // Centrado para que se vea bien
+            statsEl.style.gap = '5px';
             statsEl.style.padding = '8px 16px';
             // Tweak individual stat-items to be smaller and horizontal
             const statItems = Array.from(statsEl.querySelectorAll('.stat-item')) as HTMLElement[];
             // PEGA ESTO:
-statItems.forEach(si => {
-    // 1. Estilo de la cajita contenedora
-    Object.assign(si.style, {
-        flex: '1 1 70px',       // Flexible
-        margin: '0',
-        padding: '6px 4px',
-        background: 'rgba(255, 255, 255, 0.1)', // Fondo semitransparente
-        borderRadius: '6px',
-        textAlign: 'center',
-        border: '1px solid rgba(255,255,255,0.1)'
-    });
+            statItems.forEach(si => {
+                // 1. Estilo de la cajita contenedora
+                Object.assign(si.style, {
+                    flex: '1 1 70px',       // Flexible
+                    margin: '0',
+                    padding: '6px 4px',
+                    background: 'rgba(255, 255, 255, 0.1)', // Fondo semitransparente
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                });
 
-    // 2. Estilo de la etiqueta (ej: SCORE)
-    const lbl = si.querySelector('.label') as HTMLElement | null;
-    if (lbl) {
-        Object.assign(lbl.style, {
-            fontSize: '10px',
-            textTransform: 'uppercase',
-            color: '#ccc',       // Gris claro
-            marginBottom: '2px',
-            display: 'block'
-        });
-    }
+                // 2. Estilo de la etiqueta (ej: SCORE)
+                const lbl = si.querySelector('.label') as HTMLElement | null;
+                if (lbl) {
+                    Object.assign(lbl.style, {
+                        fontSize: '10px',
+                        textTransform: 'uppercase',
+                        color: '#ccc',       // Gris claro
+                        marginBottom: '2px',
+                        display: 'block'
+                    });
+                }
 
-    // 3. Estilo del valor (ej: 1050)
-    const val = si.querySelector('.value') as HTMLElement | null;
-    if (val) {
-        Object.assign(val.style, {
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#fff',       // Blanco brillante
-            fontFamily: 'monospace'
-        });
-    }
-});
+                // 3. Estilo del valor (ej: 1050)
+                const val = si.querySelector('.value') as HTMLElement | null;
+                if (val) {
+                    Object.assign(val.style, {
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: '#fff',       // Blanco brillante
+                        fontFamily: 'monospace'
+                    });
+                }
+            });
         }
 
         // Place gameArea inside karate-content and center it
@@ -231,38 +231,38 @@ statItems.forEach(si => {
 
         // Move feedback log to footer area
         // PEGA ESTO:
-if (feedback) {
-    const footer = wrapper.querySelector('#karate-footer') as HTMLElement | null;
-    
-    // Estilos para que el texto de "Perfect/Miss" se vea profesional
-    Object.assign(feedback.style, {
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: '18px',
-        height: '24px',           // Altura fija para evitar saltos
-        lineHeight: '24px',
-        color: '#ffd700',         // Color dorado
-        textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-        margin: '0 auto',
-        width: '100%'
-    });
+        if (feedback) {
+            const footer = wrapper.querySelector('#karate-footer') as HTMLElement | null;
 
-    if (footer) {
-        footer.innerHTML = '';    // Limpia el footer antes de poner el feedback
-        footer.appendChild(feedback);
-    } else {
-        wrapper.appendChild(feedback);
+            // Estilos para que el texto de "Perfect/Miss" se vea profesional
+            Object.assign(feedback.style, {
+                textAlign: 'center',
+                fontWeight: 'bold',
+                fontSize: '18px',
+                height: '24px',           // Altura fija para evitar saltos
+                lineHeight: '24px',
+                color: '#ffd700',         // Color dorado
+                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                margin: '0 auto',
+                width: '100%'
+            });
+
+            if (footer) {
+                footer.innerHTML = '';    // Limpia el footer antes de poner el feedback
+                footer.appendChild(feedback);
+            } else {
+                wrapper.appendChild(feedback);
+            }
+        }
     }
-}
-    }
-    
+
     // Inicializar Phaser en el `phaser-root` que ahora está dentro del game-area
     try {
         const rect = wrapper.getBoundingClientRect();
-    const usableHeight = rect.height - 300;
-    const usableWidth = rect.width - 32;
-    let dynamicScale = Math.floor(Math.min(usableWidth / 64, usableHeight / 64, 5));
-   if (dynamicScale < 1) dynamicScale = 1;
+        const usableHeight = rect.height - 300;
+        const usableWidth = rect.width - 32;
+        let dynamicScale = Math.floor(Math.min(usableWidth / 64, usableHeight / 64, 5));
+        if (dynamicScale < 1) dynamicScale = 1;
         startPhaser({
             parentId: 'phaser-root',
             sprites: [

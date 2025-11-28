@@ -108,7 +108,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
             // 1. Crear Animaciones
             for (const s of sprites) {
                 let count = s.frameCount ?? frameCount;
-                
+
                 // Intento automático de calcular frames si no se proveen
                 if (count == null && this.textures.exists(s.key)) {
                     const tex = this.textures.get(s.key);
@@ -135,7 +135,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
             // 2. Crear Personaje Principal
             const idle = sprites.find((x: any) => /idle/i.test(x.key));
             const main = idle ?? sprites[0];
-            
+
             const sprite = this.add.sprite(centerX, centerY, main.key)
                 .setScale(cfg.scale ?? 1)
                 .setName('character');
@@ -166,7 +166,7 @@ export function startPhaser(cfg: PhaserRendererConfig = {}) {
                     s.setDepth(1000);
                 }
             });
-            
+
             // Asignamos al registro de la escena para recuperarlo fácil desde fuera
             this.registry.set('throwablesGroup', group);
         }
@@ -246,7 +246,7 @@ export function spawnThrowable(duration: number = 600) {
 
     // --- OBTENER DEL POOL DESDE EL REGISTRO DE LA ESCENA ---
     let group = scene.registry.get('throwablesGroup') as Phaser.GameObjects.Group;
-    
+
     // Fallback de seguridad: si el grupo no existe (ej. reinicio raro), crearlo
     if (!group || !group.scene) {
         group = scene.add.group({
@@ -270,7 +270,7 @@ export function spawnThrowable(duration: number = 600) {
         // Intentar ponerle la textura del objeto si existe, sino un color
         if (scene.textures.exists('throwable')) sprite.setTexture('throwable');
     }
-    
+
     // RESETEO DE ESTADO
     sprite.setActive(true).setVisible(true);
     sprite.setAlpha(1);
@@ -360,8 +360,8 @@ const lastHitTimestampByScene: Map<string, number> = new Map();
  * Si se establece a 0 permitirá golpes inmediatos (sin restricción).
  */
 export function setHitCooldown(ms: number) {
-	// Normalizar
-	defaultHitCooldownMs = Math.max(0, Math.floor(ms));
+    // Normalizar
+    defaultHitCooldownMs = Math.max(0, Math.floor(ms));
 }
 
 /**
@@ -369,7 +369,7 @@ export function setHitCooldown(ms: number) {
  * true = permite spam (ignora cooldown), false = aplica cooldown configurado.
  */
 export function setAllowHitSpam(enabled: boolean) {
-	allowHitSpamGlobal = !!enabled;
+    allowHitSpamGlobal = !!enabled;
 }
 
 /**
@@ -380,29 +380,29 @@ export function setAllowHitSpam(enabled: boolean) {
  * usar tryHandleHit(...) desde el input handler (por ejemplo respuesta al espacio).
  */
 export function tryHandleHit(result: 'hit' | 'delay' | 'miss'): boolean {
-	// Si el spam está permitido globalmente, procesar siempre
-	if (allowHitSpamGlobal) {
-		handleThrowableReaction(result);
-		return true;
-	}
+    // Si el spam está permitido globalmente, procesar siempre
+    if (allowHitSpamGlobal) {
+        handleThrowableReaction(result);
+        return true;
+    }
 
-	const scene = getActiveScene();
-	if (!scene) return false;
+    const scene = getActiveScene();
+    if (!scene) return false;
 
-	const sceneKey = (scene.sys && scene.sys.settings && (scene.sys.settings.key as string)) || `scene@${scene.scene.index}`;
-	const now = Date.now();
-	const last = lastHitTimestampByScene.get(sceneKey) ?? 0;
-	const elapsed = now - last;
+    const sceneKey = (scene.sys && scene.sys.settings && (scene.sys.settings.key as string)) || `scene@unknown`;
+    const now = Date.now();
+    const last = lastHitTimestampByScene.get(sceneKey) ?? 0;
+    const elapsed = now - last;
 
-	if (elapsed >= defaultHitCooldownMs) {
-		// Permitir y actualizar timestamp
-		lastHitTimestampByScene.set(sceneKey, now);
-		handleThrowableReaction(result);
-		return true;
-	}
+    if (elapsed >= defaultHitCooldownMs) {
+        // Permitir y actualizar timestamp
+        lastHitTimestampByScene.set(sceneKey, now);
+        handleThrowableReaction(result);
+        return true;
+    }
 
-	// Bloqueado por cooldown
-	return false;
+    // Bloqueado por cooldown
+    return false;
 }
 
 // --- Helpers Internos ---

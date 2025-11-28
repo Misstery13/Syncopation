@@ -81,7 +81,7 @@ function applyFullscreen(enabled: boolean) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  
+
   // A. Referencias a elementos del DOM
   const modalEl = document.getElementById('configModal');
   const saveBtn = document.getElementById('saveConfigBtn') as HTMLButtonElement | null;
@@ -97,30 +97,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ABRIR: Si click en "Selección de Niveles" (botón del Hub)
     if (target.closest('[data-scene-id="angel-levels"]')) {
-        if (levelOverlay) {
-            levelOverlay.style.display = 'flex'; // 'flex' activa el centrado y el glass
-        }
+      if (levelOverlay) {
+        levelOverlay.style.display = 'flex'; // 'flex' activa el centrado y el glass
+      }
     }
 
     // CERRAR: Si click en "Volver al Menú" (dentro del overlay)
     if (target.closest('[data-action="navigate-back"]')) {
-        if (levelOverlay) {
-            levelOverlay.style.display = 'none';
-        }
+      if (levelOverlay) {
+        levelOverlay.style.display = 'none';
+      }
     }
-    
+
     // JUGAR: Si click en "Jugar" (dentro del overlay)
     if (target.closest('[data-action="play-level"]')) {
-        // Aquí puedes disparar el evento para iniciar el juego real
-        const startEvent = new Event('startGame');
-        window.dispatchEvent(startEvent);
-        // Opcional: cerrar el overlay
-        if (levelOverlay) levelOverlay.style.display = 'none';
+      // Aquí puedes disparar el evento para iniciar el juego real
+      const startEvent = new Event('startGame');
+      window.dispatchEvent(startEvent);
+      // Opcional: cerrar el overlay
+      if (levelOverlay) levelOverlay.style.display = 'none';
     }
   });
 
   // C. Lógica del Modal de Configuración
-  if (!modalEl || !saveBtn || !volume) return;
+  if (!modalEl || !saveBtn || !volume || !difficulty || !fullscreen) return;
 
   const bootstrapGlobal = (window as any).bootstrap;
   const modal = bootstrapGlobal?.Modal?.getOrCreateInstance(modalEl);

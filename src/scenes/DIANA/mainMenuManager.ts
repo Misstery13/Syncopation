@@ -38,18 +38,18 @@ function createSceneMenuItems(): MenuItemData[] {
   return [
     {
       id: 'angel-levels',
-      label: 'Selección de Niveles (Ángel)',
-      description: 'Explora los niveles creados por Ángel y elige una canción para jugar.',
+      label: 'Selección de Niveles',
+      description: 'Explora los niveles creados y elige una canción para jugar.',
     },
     {
       id: 'carlos-stats',
-      label: 'Estadísticas del Jugador (Carlos)',
-      description: 'Consulta tu progreso, puntajes y logros recopilados por Carlos.',
+      label: 'Estadísticas del Jugador',
+      description: 'Consulta tu progreso, puntajes y logros recopilados.',
     },
     {
       id: 'said-credits',
-      label: 'Créditos Interactivos (Said)',
-      description: 'Agradece a todo el equipo con la experiencia de créditos de Said.',
+      label: 'Créditos Interactivos',
+      description: 'Agradece a todo el equipo con la experiencia de créditos.',
     },
   ];
 }
