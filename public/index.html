@@ -134,71 +134,11 @@
     <canvas id="gameCanvas" style="display: none;"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="stars.js"></script>
+
     <script type="module" src="../src/main.ts"></script>
 
     <!-- Fallback mínimo para audio (reproduce música y SFX tras interacción si autoplay bloqueado) -->
-    <script>
-        // Fallback audio manager para cuando el bundle no haya inicializado audio.
-        (function () {
-            const menuSrc = 'assets/audio/test.mp3';
-            const btnSrc = 'assets/audio/sfx/btnSound.mp3';
 
-            const menuMusic = new Audio(menuSrc);
-            menuMusic.loop = true;
-            menuMusic.volume = 0.5;
-
-            const btnSound = new Audio(btnSrc);
-            btnSound.volume = 0.5;
-
-            let autoplayBlocked = false;
-
-            menuMusic.play().catch(() => {
-                autoplayBlocked = true;
-                // Esperar interacción del usuario para reproducir
-                const resume = () => {
-                    menuMusic.play().catch(() => { });
-                    document.removeEventListener('click', resume);
-                    document.removeEventListener('keydown', resume);
-                    autoplayBlocked = false;
-                };
-                document.addEventListener('click', resume, { once: true });
-                document.addEventListener('keydown', resume, { once: true });
-            });
-
-            // Reproducir SFX en clicks sobre botones / elementos interactivos
-            document.addEventListener('click', (ev) => {
-                const target = (ev.target instanceof HTMLElement) ? ev.target.closest('button, .btn-custom, .menu-option, [data-action]') : null;
-                if (!target) return;
-                // Clonar audio para permitir solapamiento
-                try {
-                    const s = btnSound.cloneNode();
-                    s.volume = btnSound.volume;
-                    // algunos clones pueden no ser HTMLAudioElement en TS-free runtime; forzar tipo en uso
-                    s.play?.().catch(() => { });
-                } catch (e) {
-                    // Fallback simple: crear nuevo elemento si clone falla
-                    const a = new Audio(btnSrc);
-                    a.volume = btnSound.volume;
-                    a.play().catch(() => { });
-                }
-
-                // Si autoplay estaba bloqueado, al primer click intentar iniciar menuMusic también
-                if (autoplayBlocked) {
-                    menuMusic.play().catch(() => { });
-                    autoplayBlocked = false;
-                }
-            });
-
-            // Exponer en window para que el bundle pueda acceder si se carga después
-            (window as any).__fallbackAudio = {
-                menuMusic,
-                btnSound,
-                playMenu: () => menuMusic.play().catch(() => { }),
-                pauseMenu: () => { menuMusic.pause(); menuMusic.currentTime = 0; }
-            };
-        })();
-    </script>
 </body>
 
 </html>

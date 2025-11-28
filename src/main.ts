@@ -1,6 +1,15 @@
 import { Game } from './core/game';
 import LoginManager from './ui/loginManager';
 import { MainMenuManager } from './scenes/DIANA/mainMenuManager';
+import { initStars } from './ui/stars';
+
+// --- 0. INICIALIZACIÓN DEL FONDO ---
+try {
+  initStars();
+  console.log('Stars initialized successfully');
+} catch (error) {
+  console.warn('Failed to initialize stars:', error);
+}
 
 // --- 1. INICIALIZACIÓN DEL LOGIN Y MENÚ ---
 let loginManager: LoginManager;
@@ -10,13 +19,17 @@ const mainMenu = new MainMenuManager({
   },
 });
 
+console.log('[main.ts] Creating LoginManager and MainMenuManager...');
+
 loginManager = new LoginManager({
   onAuthSuccess: (payload) => {
     mainMenu.show(payload);
   },
 });
 
+console.log('[main.ts] LoginManager created, calling init...');
 loginManager.init();
+console.log('[main.ts] LoginManager initialized successfully');
 
 // --- 2. SISTEMA DE AUDIO (Música y Efectos) ---
 const menuMusic = new Audio('assets/audio/test.mp3');
