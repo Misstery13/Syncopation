@@ -14,7 +14,8 @@
     },
     "dependencies": {
         "bootstrap": "^5.3.8",
-        "phaser": "^3.90.0"
+        "phaser": "^3.90.0",
+        "qrcode": "^1.5.4"
     },
     "devDependencies": {
         "@types/bootstrap": "^5.2.10",
