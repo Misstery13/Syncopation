@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc --noEmit && vite build && copyfiles -u 1 \"public/assets/**/*\" dist",
+        "build": "tsc --noEmit && vite build && copyfiles -u 1 public/assets/**/* dist",
         "preview": "vite preview",
         "type-check": "tsc --noEmit",
         "deploy:vercel": "npm run build && vercel --prod",

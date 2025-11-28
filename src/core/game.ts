@@ -88,9 +88,9 @@ export class Game {
                 parentId: 'phaser-root',
                 // Pasamos los tres sprites que mencionaste. Ajusta nombres si son distintos.
                 sprites: [
-                    { key: 'Kimu-Idle', path: './assets/images/sprites/Kimu-Idle.png', frameWidth: 64, frameHeight: 64, frameRate: 8, loop: true },
-                    { key: 'Kimu-punch-right', path: './assets/images/sprites/Kimu-punch-right.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
-                    { key: 'Kimu-punch-left', path: './assets/images/sprites/Kimu-punch-left.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
+                    { key: 'Kimu-Idle', path: '/assets/images/sprites/Kimu-Idle.png', frameWidth: 64, frameHeight: 64, frameRate: 8, loop: true },
+                    { key: 'Kimu-punch-right', path: '/assets/images/sprites/Kimu-punch-right.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
+                    { key: 'Kimu-punch-left', path: '/assets/images/sprites/Kimu-punch-left.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
                 ],
                 frameWidth: 64,
                 frameHeight: 64,

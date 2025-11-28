@@ -32,7 +32,7 @@ loginManager.init();
 console.log('[main.ts] LoginManager initialized successfully');
 
 // --- 2. SISTEMA DE AUDIO (Música y Efectos) ---
-const menuMusic = new Audio('assets/audio/test.mp3');
+const menuMusic = new Audio('/assets/audio/test.mp3');
 menuMusic.loop = true;
 menuMusic.volume = 0.5; // Default volume
 // Expose to window so other modules can pause/resume it when needed
@@ -50,7 +50,7 @@ menuMusic.play().catch(() => {
   document.addEventListener('keydown', playOnInteraction);
 });
 
-const btnSound = new Audio('assets/audio/sfx/btnSound.mp3');
+const btnSound = new Audio('/assets/audio/sfx/btnSound.mp3');
 btnSound.volume = 0.5;
 
 // Manejo global de sonidos de botones
