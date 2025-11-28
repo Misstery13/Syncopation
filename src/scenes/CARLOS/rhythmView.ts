@@ -28,7 +28,6 @@ export function renderRhythmView(state: FullGameState): HTMLElement {
         <div class="game-area">
             <div id="phaser-root"></div>
             <div id="target-indicator" style="position:absolute;left:10px;top:10px;width:80px;height:80px;border:5px solid #00ff7f;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0.5;"></div>
-            <div class="hit-instruction">Pulsa ESPACIO en el momento justo</div>
         </div>
         <div id="feedback-log"></div>
     `;

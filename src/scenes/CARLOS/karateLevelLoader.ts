@@ -44,10 +44,11 @@ export function loadKarateKatLevel(
     const wrapper = document.createElement('div');
     wrapper.id = 'karate-level-window';
     wrapper.className = 'karate-level-window';
-    wrapper.style.width = '900px';
-    wrapper.style.maxWidth = 'calc(100% - 40px)';
+    wrapper.style.width = '100%';
+    wrapper.style.maxWidth = '800px';
     wrapper.style.height = '90vh';
-    wrapper.style.background = '#0b0b0b';
+    wrapper.style.maxHeight = '100%';
+    wrapper.style.background = '#7c787e';
     wrapper.style.borderRadius = '8px';
     wrapper.style.overflow = 'hidden';
     wrapper.style.display = 'flex';
@@ -61,7 +62,6 @@ export function loadKarateKatLevel(
       </div>
     </div>
     <div id="karate-content" style="position:relative;flex:1;min-height:300px;">
-      <div id="target-indicator" style="position:absolute;left:10px;top:10px;width:80px;height:80px;border:5px solid #00ff7f;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff"></div>
     </div>
     <div id="karate-footer" style="padding:8px;text-align:center;background:#070707;border-top:1px solid rgba(255,255,255,0.02)"></div>
   `;
@@ -155,20 +155,49 @@ export function loadKarateKatLevel(
             wrapper.insertBefore(statsEl, karateContent);
             // Ensure stats occupy full width
             statsEl.style.width = '100%';
-            statsEl.style.boxSizing = 'border-box';
+statsEl.style.display = 'flex';       // Aseguramos que sea flex
+statsEl.style.flexWrap = 'wrap';      // <--- IMPORTANTE: Si no caben, bajan
+statsEl.style.justifyContent = 'center'; // Centrado para que se vea bien
+statsEl.style.gap = '5px';
             statsEl.style.padding = '8px 16px';
             // Tweak individual stat-items to be smaller and horizontal
             const statItems = Array.from(statsEl.querySelectorAll('.stat-item')) as HTMLElement[];
-            statItems.forEach(si => {
-                si.style.flex = '0 0 auto';
-                si.style.width = '110px';
-                si.style.padding = '8px 6px';
-                si.style.marginRight = '8px';
-                const lbl = si.querySelector('.label') as HTMLElement | null;
-                const val = si.querySelector('.value') as HTMLElement | null;
-                if (lbl) lbl.style.fontSize = '12px';
-                if (val) val.style.fontSize = '18px';
-            });
+            // PEGA ESTO:
+statItems.forEach(si => {
+    // 1. Estilo de la cajita contenedora
+    Object.assign(si.style, {
+        flex: '1 1 70px',       // Flexible
+        margin: '0',
+        padding: '6px 4px',
+        background: 'rgba(255, 255, 255, 0.1)', // Fondo semitransparente
+        borderRadius: '6px',
+        textAlign: 'center',
+        border: '1px solid rgba(255,255,255,0.1)'
+    });
+
+    // 2. Estilo de la etiqueta (ej: SCORE)
+    const lbl = si.querySelector('.label') as HTMLElement | null;
+    if (lbl) {
+        Object.assign(lbl.style, {
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            color: '#ccc',       // Gris claro
+            marginBottom: '2px',
+            display: 'block'
+        });
+    }
+
+    // 3. Estilo del valor (ej: 1050)
+    const val = si.querySelector('.value') as HTMLElement | null;
+    if (val) {
+        Object.assign(val.style, {
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#fff',       // Blanco brillante
+            fontFamily: 'monospace'
+        });
+    }
+});
         }
 
         // Place gameArea inside karate-content and center it
@@ -201,30 +230,51 @@ export function loadKarateKatLevel(
         }
 
         // Move feedback log to footer area
-        if (feedback) {
-            const footer = wrapper.querySelector('#karate-footer') as HTMLElement | null;
-            if (footer) {
-                footer.appendChild(feedback);
-            } else {
-                wrapper.appendChild(feedback);
-            }
-        }
-    }
+        // PEGA ESTO:
+if (feedback) {
+    const footer = wrapper.querySelector('#karate-footer') as HTMLElement | null;
+    
+    // Estilos para que el texto de "Perfect/Miss" se vea profesional
+    Object.assign(feedback.style, {
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: '18px',
+        height: '24px',           // Altura fija para evitar saltos
+        lineHeight: '24px',
+        color: '#ffd700',         // Color dorado
+        textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+        margin: '0 auto',
+        width: '100%'
+    });
 
+    if (footer) {
+        footer.innerHTML = '';    // Limpia el footer antes de poner el feedback
+        footer.appendChild(feedback);
+    } else {
+        wrapper.appendChild(feedback);
+    }
+}
+    }
+    
     // Inicializar Phaser en el `phaser-root` que ahora está dentro del game-area
     try {
+        const rect = wrapper.getBoundingClientRect();
+    const usableHeight = rect.height - 300;
+    const usableWidth = rect.width - 32;
+    let dynamicScale = Math.floor(Math.min(usableWidth / 64, usableHeight / 64, 5));
+   if (dynamicScale < 1) dynamicScale = 1;
         startPhaser({
             parentId: 'phaser-root',
             sprites: [
                 { key: 'Kimu-Idle', path: '/assets/images/sprites/Kimu-Idle.png', frameWidth: 64, frameHeight: 64, frameRate: 8, loop: true },
                 { key: 'Kimu-punch-right', path: '/assets/images/sprites/Kimu-punch-right.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
                 { key: 'Kimu-punch-left', path: '/assets/images/sprites/Kimu-punch-left.png', frameWidth: 64, frameHeight: 64, frameRate: 12, loop: false },
-                { key: 'throwable', path: '/assets/images/sprites/throwable.png', frameWidth: 64, frameHeight: 64, frameRate: 1, frameCount: 1, loop: false },
+                { key: 'throwable', path: '/assets/images/sprites/throwable.png', frameWidth: 32, frameHeight: 32, frameRate: 1, frameCount: 1, loop: false },
             ],
             frameWidth: 64,
             frameHeight: 64,
             frameRate: 10,
-            scale: 5,
+            scale: dynamicScale,
         });
     } catch (err) {
         console.error('Error starting Phaser for overlay:', err);

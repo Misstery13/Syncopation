@@ -6,10 +6,10 @@ const activeSfxClones = new Set<HTMLAudioElement>();
 
 export function loadSfx() {
     try {
-        sfxHit = new Audio('/assets/audio/kick-yarn-ball.mp3'); sfxHit.volume = 0.7;
-        sfxDelay = new Audio('/assets/audio/meow.mp3'); sfxDelay.volume = 0.7;
-        sfxMiss = new Audio('/assets/audio/miss.mp3'); sfxMiss.volume = 0.5;
-        sfxSpawn = new Audio('/assets/audio/boing.mp3'); sfxSpawn.volume = 0.5;
+        sfxHit = new Audio('/assets/audio/Cymatics - Deluxe Lofi Clap.wav'); sfxHit.volume = 0.7;
+        sfxDelay = new Audio('/assets/audio/Cymatics - Tooth Hihat.wav'); sfxDelay.volume = 0.8;
+        sfxMiss = new Audio('/assets/audio/Cymatics - Leaves Open Hihat.wav'); sfxMiss.volume = 0.7;
+        // sfxSpawn = new Audio('/assets/audio/kick-yarn-ball.mp3'); sfxSpawn.volume = 0.5;
     } catch (e) { console.warn('Audio Error', e); }
 }
 
