@@ -37,22 +37,32 @@ html {
     overflow: hidden;
     font-family: 'Fredoka One', cursive;
     color: var(--brown-border);
-   
+
 }
 
 /* =========================================
    2. CANVAS Y CAPAS (LAYERS)
    ========================================= */
 #psychedelicCanvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1; display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: block;
 }
 
 #ui-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 2; pointer-events: none;
-  
-    
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+
+
 }
 
 /* Contenedor genérico para centrar pantallas */
@@ -66,7 +76,7 @@ html {
     justify-content: center;
     align-items: center;
     pointer-events: auto;
-    padding: clamp(1rem, 7vw, 2.5rem); 
+    padding: clamp(1rem, 7vw, 2.5rem);
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -90,8 +100,12 @@ html {
     z-index: 10;
     /* Dimensiones para formularios */
     padding: 30px;
-    width: 80%; max-width: 450px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 80%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Títulos */
@@ -104,6 +118,7 @@ h2,
     font-family: 'Fredoka One', cursive;
     margin: 0;
 }
+
 /* =========================================
    PANTALLA DE SELECCIÓN DE NIVELES (OVERLAY)
    ========================================= */
@@ -123,7 +138,7 @@ h2,
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    
+
     /* Animación de entrada suave */
     animation: fadeIn 0.3s ease-out;
 }
@@ -174,7 +189,11 @@ h2,
 
 /* --- INPUTS --- */
 form {
-    display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    width: 100%;
 }
 
 input[type="text"],
@@ -208,20 +227,29 @@ input:focus {
 
 /* Contenedor de botones del formulario */
 .form-buttons {
-    display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+    margin-top: 5px;
 }
 
 /* =========================================
    4. BOTONES Y TEXTOS
    ========================================= */
-h1, h2, .game-title, .modal-title {
+h1,
+h2,
+.game-title,
+.modal-title {
     color: var(--orange-dark);
     text-transform: uppercase;
     font-family: 'Fredoka One', cursive;
     margin: 0;
 }
 
-.btn-custom, .menu-option, .menu-actions button {
+.btn-custom,
+.menu-option,
+.menu-actions button {
     font-family: 'Fredoka One', cursive;
     font-size: clamp(0.9rem, 2.5vw, 1.3rem);
     text-transform: uppercase;
@@ -231,27 +259,63 @@ h1, h2, .game-title, .modal-title {
     border-radius: 50px;
     box-shadow: 0 5px 0 var(--brown-border);
     transition: all 0.1s;
-    display: inline-flex; justify-content: center; align-items: center;
-    text-decoration: none; color: white;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: white;
     padding: clamp(8px, 1.5vw, 12px) clamp(20px, 4vw, 35px);
     margin: 5px;
 }
 
-.btn-custom:hover, .menu-option:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 8px 0 var(--brown-border); }
-.btn-custom:active, .menu-option:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--brown-border); }
+.btn-custom:hover,
+.menu-option:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+    box-shadow: 0 8px 0 var(--brown-border);
+}
+
+.btn-custom:active,
+.menu-option:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 var(--brown-border);
+}
 
 /* Colores */
-.btn-play, .menu-option { background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%); text-shadow: 2px 2px 0 #D84315; }
-.btn-guest { background: linear-gradient(180deg, var(--blue-light) 0%, var(--blue-dark) 100%); text-shadow: 2px 2px 0 #01579B; }
-.btn-secondary, .btn-back, .btn-close { background: #90A4AE; text-shadow: 2px 2px 0 #546E7A; }
-.btn-config { background: #FFF; color: var(--brown-border); }
-.small-btn { font-size: 0.9rem; padding: 8px 20px; }
+.btn-play,
+.menu-option {
+    background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%);
+    text-shadow: 2px 2px 0 #D84315;
+}
+
+.btn-guest {
+    background: linear-gradient(180deg, var(--blue-light) 0%, var(--blue-dark) 100%);
+    text-shadow: 2px 2px 0 #01579B;
+}
+
+.btn-secondary,
+.btn-back,
+.btn-close {
+    background: #90A4AE;
+    text-shadow: 2px 2px 0 #546E7A;
+}
+
+.btn-config {
+    background: #FFF;
+    color: var(--brown-border);
+}
+
+.small-btn {
+    font-size: 0.9rem;
+    padding: 8px 20px;
+}
 
 /* FIX LISTA HUB (Texto blanco sobre fondo naranja) */
 .menu-list-simple .menu-option {
-    width: 100%; margin-bottom: 10px;
+    width: 100%;
+    margin-bottom: 10px;
     background: linear-gradient(180deg, var(--orange-main) 0%, var(--orange-dark) 100%);
-    display: block; 
+    display: block;
 }
 
 /* =========================================
@@ -365,24 +429,33 @@ ul.menu-options {
     margin-top: 10px;
     position: relative;
     z-index: 10;
-    width: 95%; max-width: 900px; /* Ancho completo */
-    height: 70vh; min-height: 500px;
-    display: flex; flex-direction: row; /* Diseño Fila */
+    width: 95%;
+    max-width: 900px;
+    /* Ancho completo */
+    height: 70vh;
+    min-height: 500px;
+    display: flex;
+    flex-direction: row;
+    /* Diseño Fila */
     overflow: hidden;
-    
+
 }
+
 /* Este es el PADRE que centra todo */
 #levelSelectionOverlay {
-    position: fixed; /* Fijo en la pantalla */
+    position: fixed;
+    /* Fijo en la pantalla */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    
+
     /* ESTAS 3 LÍNEAS HACEN EL CENTRADO MÁGICO */
     display: flex;
-    justify-content: center; /* Centra horizontalmente */
-    align-items: center;     /* Centra verticalmente */
+    justify-content: center;
+    /* Centra horizontalmente */
+    align-items: center;
+    /* Centra verticalmente */
 
     /* Fondo oscuro glass */
     background: rgba(0, 0, 0, 0.7);
@@ -784,35 +857,201 @@ ul.menu-options {
     background: #fff;
     border: 2px solid var(--brown-border);
     border-radius: 15px;
-    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.difficulty {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    color: white;
     font-weight: bold;
-    transition: all 0.2s;
+    margin: 10px 0;
+    text-transform: uppercase;
+    font-size: 0.9rem;
 }
 
-.level-item:hover {
-    transform: translateX(5px);
-    background: #FFFDE7;
+.difficulty-easy {
+    background: var(--diff-easy);
 }
 
-.level-item.selected {
-    background: var(--orange-main);
-    color: #fff;
-    border-color: #F57F17;
-    transform: scale(1.05);
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+.difficulty-normal {
+    background: var(--diff-normal);
 }
 
-.level-item.locked {
-    background: #CFD8DC;
-    color: #90A4AE;
-    cursor: not-allowed;
-    opacity: 0.7;
+.difficulty-hard {
+    background: var(--diff-hard);
 }
 
-.level-details-container {
-    width: 60%;
-    padding: 30px;
+.difficulty-expert {
+    background: var(--diff-expert);
+}
+
+/* --- Pantalla de Login / Autenticación --- */
+.login-panel {
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 460px;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-panel .auth-title {
+    font-size: 2.4rem;
+    margin-bottom: 20px;
+}
+
+/* Asegura que el formulario use todo el ancho de la tarjeta */
+.login-panel form {
+    width: 100%;
+}
+
+.modal-footer {
+    border-top: none;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--orange-main);
+    border: 2px solid var(--brown-border);
+    border-radius: 10px;
+}
+
+@keyframes floatTitle {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(-2deg);
+    }
+}
+
+@keyframes equalize {
+    0% {
+        height: 10px;
+    }
+
+    100% {
+        height: 35px;
+    }
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bounceTitle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    h1.game-title {
+        font-size: 3rem;
+    }
+
+    .level-selection-content {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .level-list-container {
+        width: 100%;
+        border-right: none;
+        border-bottom: 3px dashed var(--brown-border);
+        height: 250px;
+    }
+
+    .level-details-container {
+        width: 100%;
+        padding: 15px;
+    }
+}
+
+/* =========================================
+   5. LEVEL SELECTION OVERLAY
+   ========================================= */
+.level-selection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: popIn 0.3s ease-out;
+}
+
+.level-selection-content {
+    display: flex;
+    width: 90%;
+    max-width: 900px;
+    height: 80%;
+    max-height: 600px;
+    background: var(--cream-bg);
+    border: 4px solid var(--brown-border);
+    border-radius: 30px;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.level-list-container {
+    width: 40%;
+    background: rgba(255, 255, 255, 0.5);
+    border-right: 3px dashed var(--brown-border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.level-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.level-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #fff;
+    border: 2px solid var(--brown-border);
+    border-radius: 15px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -872,4 +1111,134 @@ ul.menu-options {
 .login-panel input[type="password"] {
     width: 100%;
     max-width: 320px;
+}
+
+/* =========================================
+   6. MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 480px) {
+
+    /* --- TYPOGRAPHY --- */
+    h1.game-title {
+        font-size: clamp(2rem, 10vw, 3rem);
+        -webkit-text-stroke: 1px #01579B;
+        /* Thinner stroke for small text */
+    }
+
+    .main-menu-panel .game-title {
+        font-size: 2.2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.4rem;
+    }
+
+    /* --- LAYOUT & CONTAINERS --- */
+    .screen-container {
+        padding: 10px;
+    }
+
+    .card-panel,
+    .main-menu-panel {
+        width: 95%;
+        max-width: none;
+        /* Allow full width */
+        padding: 20px 15px;
+        border-width: 3px;
+        /* Slightly thinner border */
+    }
+
+    .menu-buttons {
+        gap: 10px;
+    }
+
+    /* --- CONTROLS (TOUCH TARGETS) --- */
+    .btn-custom,
+    .menu-option,
+    .menu-actions button {
+        width: 100%;
+        /* Full width buttons on mobile */
+        padding: 12px 15px;
+        /* Larger touch area */
+        font-size: 1rem;
+        margin: 5px 0;
+        display: flex;
+        /* Ensure centering */
+    }
+
+    input[type="text"],
+    input[type="password"],
+    .cartoon-input {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+        /* Stack buttons */
+        gap: 10px;
+    }
+
+    .small-btn {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* --- SPECIFIC SCREENS --- */
+    /* Level Selection Overlay */
+    .level-selection-content {
+        width: 95%;
+        height: 90%;
+        flex-direction: column;
+    }
+
+    .level-list-container {
+        width: 100%;
+        height: 40%;
+        /* Split height */
+        border-right: none;
+        border-bottom: 3px dashed var(--brown-border);
+    }
+
+    .level-details-container {
+        width: 100%;
+        height: 60%;
+        padding: 15px;
+    }
+
+    .level-play-button {
+        padding: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* Stats Screen */
+    .stats-container {
+        padding: 15px;
+        width: 98%;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns on mobile */
+        gap: 10px;
+    }
+
+    .stat-item {
+        padding: 10px;
+    }
+
+    .stat-item strong {
+        font-size: 1.2rem;
+    }
+
+    /* Credits */
+    .credits-wrap {
+        width: 95%;
+        max-height: 85vh;
+        padding: 20px;
+    }
 }
