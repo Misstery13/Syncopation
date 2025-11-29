@@ -19,8 +19,8 @@ export interface LevelDefinition {
 export const LEVEL_DATABASE: LevelDefinition[] = [
   { 
     id: 'level_1', 
-    title: 'Amanecer Rítmico', 
-    description: 'Una introducción suave a las síncopas. Perfecta para calentar.', 
+    title: 'Ritmo y estambre', 
+    description: 'El heroe felino Kimu conocido por sus agiles ataques de Karate y su inquebrantable sentido del swing, necesita de tu ayuda para su entrenamiento con estambres.', 
     difficulty: 'Fácil', 
     songFile: 'songs/amanecer.mp3',
     requiresLevel: 0 // Desbloqueado desde el inicio
