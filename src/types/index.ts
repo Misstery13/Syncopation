@@ -148,12 +148,8 @@ export interface GameState {
 export interface SongDefinition {
 
   readonly idSong: string;
-
   readonly difficulty: 'easy' | 'normal' | 'hard';
-
   readonly tempos: readonly Tempo[];
-
-  // Opcional: ruta al archivo de audio para la canción (relativa a la página pública)
   readonly audioUrl?: string;
 
 }

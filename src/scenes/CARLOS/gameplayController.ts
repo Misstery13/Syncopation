@@ -1,5 +1,6 @@
 console.log('gameplayController module executing...');
-import { FullGameState, SONG_TEST_LEVEL } from './gameplayTypes';
+import { FullGameState } from './gameplayTypes';
+import { beatMapLevel1 } from './beatMaps';
 import { SongDefinition, Tempo } from '../../types/index';
 import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from '../../core/rhythmCore';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
@@ -8,6 +9,7 @@ import { setPlayerStats, loadPlayerStats } from './statsController';
 import { loadSfx, playSfx, cleanupAudio } from './rhythmAudio';
 import { renderRhythmView, cacheDOMElements, updateVisuals, appendFeedbackLog, cleanupView } from './rhythmView';
 
+const beatmap = beatMapLevel1;
 // --- CONFIGURACIÓN DE SINCRONIZACIÓN ---
 
 // 1. TIEMPO DE VIAJE (TRAVEL TIME):
@@ -212,7 +214,7 @@ function handleInput(event: MouseEvent | KeyboardEvent) {
 }
 
 // Variable por defecto por si no pasan nada
-const defaultSong: SongDefinition = SONG_TEST_LEVEL;
+const defaultSong = beatmap;
 
 export function initRhythmScreen(song?: SongDefinition, mountRoot?: HTMLElement | string): void {
     let root: HTMLElement | null = null;

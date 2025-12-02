@@ -1,17 +1,21 @@
 import { LevelSelection } from '../ANGEL/levelScreen';
 import type { SongDefinition } from '../../types';
 import { initRhythmScreen } from './gameplayController';
-import { SONG_TEST_LEVEL } from './gameplayTypes';
+import { beatMapLevel1 } from './beatMaps';
 import { startPhaser } from '../../core/phaserBridge';
 
-// Pure mapper: convierte la selección de nivel a un SongDefinition que usa el gameplay
-export function mapSelectionToSong(selection: LevelSelection): SongDefinition {
-    // No mutamos SONG_TEST_LEVEL: devolvemos un nuevo objeto
+export function loadSongDefinition(selection: LevelSelection): SongDefinition {
+    const beatmap = beatMapLevel1;
+
+    if (!beatmap) {
+        throw new Error(`Beatmap no encontrado para levelId=${selection.levelId}`);
+    }
+
     return {
-        idSong: selection.levelId,
-        difficulty: SONG_TEST_LEVEL.difficulty,
-        tempos: SONG_TEST_LEVEL.tempos.slice(), // copia pura de tempos como fallback
-        audioUrl: `/assets/audio/${selection.songFile}`,
+        idSong: beatmap.idSong,
+        difficulty: beatmap.difficulty,
+        tempos: beatmap.tempos,
+        audioUrl: `/assets/audio/${beatmap.audioUrl}`, // viene del JSON, no del menú
     };
 }
 
@@ -25,7 +29,7 @@ export function loadKarateKatLevel(
     selection: LevelSelection,
     onClose?: () => void
 ): void {
-    const song = mapSelectionToSong(selection);
+    const song = loadSongDefinition(selection);
 
     // Crear overlay modal (no tocamos #app-root)
     const overlay = document.createElement('div');
