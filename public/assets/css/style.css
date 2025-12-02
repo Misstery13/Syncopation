@@ -300,6 +300,11 @@ h2,
     text-shadow: 2px 2px 0 #546E7A;
 }
 
+.btn-donate {
+    background: linear-gradient(180deg, #ff8a80 0%, #d81b60 100%);
+    text-shadow: 2px 2px 0 #ad1457;
+}
+
 .btn-config {
     background: #FFF;
     color: var(--brown-border);
