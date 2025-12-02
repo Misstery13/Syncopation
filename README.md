@@ -18,8 +18,9 @@
 6. [Project Structure / Estructura](#project-structure--estructura)
 7. [Testing & Quality / Pruebas y Calidad](#testing--quality--pruebas-y-calidad)
 8. [Assets & Credits / Assets y Créditos](#assets--credits--assets-y-créditos)
-9. [Community Standards / Estándares de la Comunidad](#community-standards--estándares-de-la-comunidad)
-10. [License / Licencia](#license--licencia)
+9. [Support the Project / Apoya el Proyecto](#support-the-project--apoya-el-proyecto)
+10. [Community Standards / Estándares de la Comunidad](#community-standards--estándares-de-la-comunidad)
+11. [License / Licencia](#license--licencia)
 
 ## Overview / Descripción General
 **English:** Syncopation is a browser-based rhythm-action experience where every punch, dodge, and special ability is tied to syncopated cues rendered through a custom UI and layered music stems. Built on Phaser 3 and Vite, it is optimized for quick iteration and short gameplay experiments.  
@@ -97,6 +98,14 @@ syncopation-game/
 ## Assets & Credits / Assets y Créditos
 **English:** All visual sprites (e.g., Kimu animations) and musical stems were handcrafted for Syncopation and are not part of the MIT grant. Please request permission before reusing them.  
 **Español:** Todos los sprites (incluyendo las animaciones de Kimu) y las pistas musicales se crearon exclusivamente para Syncopation y quedan fuera del permiso MIT. Solicita autorización antes de reutilizarlos.
+
+## Support the Project / Apoya el Proyecto
+**English:** If you enjoy Syncopation and want to keep new levels, music, and polish coming, you can tip the dev team through PayPal. Every contribution goes toward art, audio gear, and hosting.  
+**Español:** Si te gusta Syncopation y deseas apoyar la creación de nuevos niveles, música y mejoras, puedes dejar una propina al equipo por PayPal. Cada aporte ayuda con arte, equipo de audio y costos de hosting.
+
+<a href="https://www.paypal.me/misstery13" target="_blank" rel="noopener noreferrer">
+  <img alt="Donate with PayPal" src="https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white">
+</a>
 
 ## Community Standards / Estándares de la Comunidad
 - `CODE_OF_CONDUCT.md` – Bilingual expectations & reporting flow. *Expectativas y canal de reporte bilingüe.*
