@@ -43,6 +43,8 @@ export function cleanupRhythmScreen() {
     try {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         document.removeEventListener('keydown', handleInput);
+        document.removeEventListener('mousedown', handleInput);
+        document.removeEventListener('touchstart', handleInput);
         spawnedTempoIds.clear();
 
         // Delegar limpieza de audio y vista a los módulos correspondientes
@@ -153,11 +155,14 @@ function finishGameLogic() {
     }
 }
 
-function handleInput(event: MouseEvent | KeyboardEvent) {
+function handleInput(event: MouseEvent | KeyboardEvent | TouchEvent) {
     if (isFinishing) return;
 
     if (event instanceof KeyboardEvent) {
         if (event.code !== 'Space') return;
+        event.preventDefault();
+    } else if (window.TouchEvent && event instanceof TouchEvent) {
+        // Evitar zoom/scroll al tocar
         event.preventDefault();
     }
 
@@ -269,9 +274,14 @@ export function initRhythmScreen(song?: SongDefinition, mountRoot?: HTMLElement 
 
         estadoActual = initializeFullGame(selectedSong, startTime);
 
-        // Habilitar Input (Click / Teclado)
+        // Habilitar Input (Click / Teclado / Touch)
         document.removeEventListener('keydown', handleInput);
+        document.removeEventListener('mousedown', handleInput);
+        document.removeEventListener('touchstart', handleInput);
+
         document.addEventListener('keydown', handleInput);
+        document.addEventListener('mousedown', handleInput);
+        document.addEventListener('touchstart', handleInput, { passive: false });
 
         // Botón de acción invisible o para móviles (opcional)
         // const actionBtn = document.getElementById('action-button'); ...

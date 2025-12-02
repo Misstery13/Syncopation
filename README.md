@@ -1,130 +1,122 @@
-# Syncopation Game
+# Syncopation Game / Juego Syncopation
 
-**Syncopation** es un juego de ritmo y acción desarrollado con **Phaser 3**, **TypeScript** y **Vite**. Combina mecánicas de juegos de ritmo con acción de combate estilo karate.
+> English — Arcade rhythm-fighting playground built with Phaser 3, TypeScript, and original audiovisual assets.  
+> Español — Juego web de ritmo y combate estilo arcade creado con Phaser 3, TypeScript y assets originales.
 
-## 🚀 Tecnologías
+## Repository Description / Descripción del Repositorio
+**English:** Syncopation mixes syncopated beats with karate-inspired combat so players punch, dodge, and counter right on the musical grid while enjoying handcrafted sprites, UI, and music.  
+**Español:** Syncopation combina patrones sincopados con combate tipo karate para que las jugadoras reaccionen al ritmo, acompañadas por sprites, UI y música creados exclusivamente para este proyecto.
 
-Este proyecto utiliza un stack moderno para desarrollo de juegos web:
+> Need a quick snippet for the GitHub description? Copy the first paragraph above or check `DESCRIPTION.md`.
 
-- **[Phaser 3](https://phaser.io/)**: Framework de juegos 2D.
-- **[TypeScript](https://www.typescriptlang.org/)**: Lenguaje principal para un código robusto y tipado.
-- **[Vite](https://vitejs.dev/)**: Build tool ultrarrápido para desarrollo y producción.
-- **[Bootstrap 5](https://getbootstrap.com/)**: Para la interfaz de usuario (UI) y menús.
-- **Node.js**: Para scripts de automatización de assets.
+## Contents / Contenido
+1. [🎯 Overview / Descripción General](#overview--descripción-general)
+2. [🎮 Play Now / Jugar Ahora](#play-now--jugar-ahora)
+3. [🛠️ Tech Stack / Tecnologías](#tech-stack--tecnologías)
+4. [⚡ Quick Start / Guía Rápida](#quick-start--guía-rápida)
+5. [🚀 Production & Deployment / Producción y Despliegue](#production--deployment--producción-y-despliegue)
+6. [🗂️ Project Structure / Estructura](#project-structure--estructura)
+7. [✅ Testing & Quality / Pruebas y Calidad](#testing--quality--pruebas-y-calidad)
+8. [🎨 Assets & Credits / Assets y Créditos](#assets--credits--assets-y-créditos)
+9. [💖 Support the Project / Apoya el Proyecto](#support-the-project--apoya-el-proyecto)
+10. [🤝 Community Standards / Estándares de la Comunidad](#community-standards--estándares-de-la-comunidad)
+11. [📄 License / Licencia](#license--licencia)
 
-## � Jugar Ahora
+## Overview / Descripción General
+- 🇬🇧 **English:** Syncopation is a browser-based rhythm-action experience where every punch, dodge, and special ability is tied to syncopated cues rendered through a custom UI and layered music stems. Built on Phaser 3 and Vite, it is optimized for quick iteration and short gameplay experiments.  
+- 🇪🇸 **Español:** Syncopation es una experiencia de ritmo y acción en el navegador donde cada golpe, esquive y habilidad responde a señales sincopadas. La interfaz y el audio multicapa son propios del proyecto y el stack con Phaser 3 + Vite permite iterar y probar niveles rápidamente.
 
-¡Escanea este código QR para jugar directamente en la web!
+## Play Now / Jugar Ahora
+- 🇬🇧 **English:** Scan the QR code below or open the hosted build. Works on desktop browsers and modern mobile devices.  
+- 🇪🇸 **Español:** Escanea el QR o visita la versión publicada; funciona en navegadores de escritorio y móviles modernos.
 
 ![QR Code](public/assets/images/qr-code.png)
 
-O visita: [https://syncopation-eight.vercel.app/](https://syncopation-eight.vercel.app/)
+- 🌐 URL: [https://syncopation-eight.vercel.app/](https://syncopation-eight.vercel.app/)
 
-## �🛠️ Instalación y Desarrollo
+## Tech Stack / Tecnologías
+- 🕹️ **Phaser 3** – 2D rendering & physics. *Motor 2D para lógica y físicas.*
+- 🧠 **TypeScript** – Strong typing across gameplay systems. *Tipado fuerte en toda la lógica de juego.*
+- ⚡ **Vite** – Fast dev server plus optimized build pipeline. *Servidor rápido y empaquetado optimizado.*
+- 🎨 **Bootstrap 5** – UI overlays, menus, and HUD widgets. *Capas de UI, menús y HUD.*
+- 📦 **Node.js scripts** – Asset automation (QR, copy steps). *Scripts para automatizar copias y utilidades.*
 
-Asegúrate de tener **Node.js** instalado (versión 16+ recomendada).
-
-1. **Clonar el repositorio:**
-
+## Quick Start / Guía Rápida
+1. **Clone / Clonar** 📥
    ```bash
    git clone https://github.com/Misstery13/Syncopation.git
    cd Syncopation
    ```
-
-2. **Instalar dependencias:**
-
+2. **Install / Instalar** 🧰
    ```bash
    npm install
    ```
-
-3. **Iniciar servidor de desarrollo:**
-
+3. **Run dev server / Servidor de desarrollo** 🚀
    ```bash
    npm run dev
    ```
+   - 🇬🇧 **English:** App serves at `http://localhost:3000`.  
+   - 🇪🇸 **Español:** La app queda disponible en `http://localhost:3000`.
 
-   El juego estará disponible en `http://localhost:3000`.
+### Helpful scripts / Scripts útiles
+- 👀 `npm run preview` – Production preview server. *Servidor de vista previa.*
+- 🧪 `npm run type-check` – Validates TypeScript contracts. *Valida contratos TS.*
+- 🛡️ `npm run test` – Runs Vitest suite under `tests/`. *Ejecuta pruebas Vitest.*
 
-## 📦 Construcción para Producción
+## Production & Deployment / Producción y Despliegue
+- 🚢 `npm run build` executes `tsc --noEmit && vite build && node scripts/copy-assets.js`.
+  - 🇬🇧 **English:** The custom `copy-assets` script guarantees audio & sprite parity on Windows, Linux, and serverless hosts.  
+  - 🇪🇸 **Español:** El script `copy-assets` asegura que los assets lleguen completos en Windows, Linux y plataformas serverless.
+- 🎯 Deploy targets:
+  - 🌥️ **Vercel / Netlify:** Detect Vite automatically.  
+  - 🗂️ **Static hosting:** Serve the `dist/` folder contents.
+- 🧰 Troubleshooting tip: Clear browser cache if an updated asset does not load after deployment. *Tip: limpia la caché si un asset no se actualiza tras el despliegue.*
 
-Para generar la versión optimizada para producción:
-
-```bash
-npm run build
-```
-
-### Nota sobre Assets en Producción
-
-Este proyecto utiliza un script personalizado (`scripts/copy-assets.js`) que se ejecuta automáticamente después del build. Esto es necesario para asegurar que los assets (imágenes, audio) se copien correctamente en todas las plataformas (Windows, Linux, Vercel), ya que herramientas estándar como `cp` o `xcopy` tienen problemas de compatibilidad cruzada.
-
-El comando de build ejecuta: `tsc --noEmit && vite build && node scripts/copy-assets.js`
-
-## ☁️ Despliegue
-
-El proyecto está configurado para desplegarse fácilmente en **Vercel**:
-
-1. Conecta tu repositorio de GitHub a Vercel.
-2. Vercel detectará automáticamente `vite` y usará la configuración por defecto.
-3. El script de build se encargará de todo.
-
-Si encuentras problemas con assets que no cargan (404) después de un despliegue, asegúrate de limpiar la caché de tu navegador.
-
-## 📂 Estructura del Proyecto
-
+## Project Structure / Estructura
+🗂️ Directory snapshot:
 ```plaintext
 syncopation-game/
-├── public/                     # Archivos estáticos (root en dev)
-│   ├── assets/                 # Recursos del juego (imágenes, audio)
-│   └── index.html              # Punto de entrada HTML
-│
-├── src/                        # Código fuente TypeScript
-│   ├── core/                   # Lógica central (Game, PhaserBridge)
-│   ├── scenes/                 # Escenas de Phaser
-│   │   ├── CARLOS/             # Gameplay, carga de niveles
-│   │   └── DIANA/              # Menús, UI, autenticación
-│   ├── ui/                     # Componentes de UI (estrellas, etc.)
-│   ├── utils/                  # Utilidades generales
-│   └── main.ts                 # Punto de entrada de la aplicación
-│
-├── scripts/                    # Scripts de utilidad
-│   └── copy-assets.js          # Script para copiar assets en build
-│
-├── dist/                       # Salida de producción (generado por build)
-├── vite.config.ts              # Configuración de Vite
-└── package.json                # Dependencias y scripts
+├── public/                # Static entry (QR, audio, sprites)
+├── src/
+│   ├── core/              # Game bootstrap & Phaser bridge
+│   ├── scenes/            # Gameplay flows (Carlos, Diana, etc.)
+│   ├── services/          # Auth & persistence helpers
+│   ├── ui/                # HUD components (stars, login)
+│   └── utils/             # Shared helpers
+├── scripts/               # build/post-build utilities
+├── tests/                 # Vitest suites
+└── vite.config.ts
 ```
+- 🇬🇧 **English:** Each scene folder owns its controller, view, audio cues, and data loader to keep experimentation isolated.  
+- 🇪🇸 **Español:** Cada carpeta de escena maneja su controlador, vista, audio y carga de datos para aislar experimentos de gameplay.
 
-## 🧪 Tests
+## Testing & Quality / Pruebas y Calidad
+- ✅ `npm run test` – Runs deterministic Vitest specs. *Ejecuta pruebas unitarias.*
+- 👀 `npm run test:watch` – Watch mode for rapid iteration. *Modo observador.*
+- 🧠 `npm run type-check` – Ensures cross-scene contracts stay aligned. *Verifica contratos compartidos.*
+- 📦 Recommended: run `npm run build` before pushing to catch asset-copy regressions. *Recomendado ejecutar build antes de subir cambios.*
 
-Para ejecutar las pruebas unitarias (Vitest):
+## Assets & Credits / Assets y Créditos
+- 🇬🇧 **English:** All visual sprites (e.g., Kimu animations) and musical stems were handcrafted for Syncopation and are not part of the MIT grant. Please request permission before reusing them.  
+- 🇪🇸 **Español:** Todos los sprites (incluyendo las animaciones de Kimu) y las pistas musicales se crearon exclusivamente para Syncopation y quedan fuera del permiso MIT. Solicita autorización antes de reutilizarlos.
 
-```bash
-npm run test
-```
+## Support the Project / Apoya el Proyecto
+- 💖 **English:** If you enjoy Syncopation and want to keep new levels, music, and polish coming, you can tip the dev team through PayPal. Every contribution goes toward art, audio gear, and hosting.  
+- 💛 **Español:** Si te gusta Syncopation y deseas apoyar la creación de nuevos niveles, música y mejoras, puedes dejar una propina al equipo por PayPal. Cada aporte ayuda con arte, equipo de audio y costos de hosting.
 
-## 🎨 Créditos y Assets Originales
+<a href="https://www.paypal.me/misstery13" target="_blank" rel="noopener noreferrer">
+  <img alt="Donate with PayPal" src="https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white">
+</a>
 
-Este proyecto se destaca por su contenido original:
+## Community Standards / Estándares de la Comunidad
+- 📘 `CODE_OF_CONDUCT.md` – Bilingual expectations & reporting flow. *Expectativas y canal de reporte bilingüe.*
+- 🧭 `CONTRIBUTING.md` – How to set up the stack, branch, test, and submit PRs. *Guía de contribución en inglés y español.*
+- 🛡️ `SECURITY.md` – Responsible vulnerability disclosure steps. *Proceso de reporte responsable.*
+- 🗒️ `.github/ISSUE_TEMPLATE/` – Bug & feature templates in both languages. *Plantillas bilingües.*
+- ✅ `.github/pull_request_template.md` – Checklist to align reviews. *Checklist para PR.*
 
-- **Sprites y Animaciones**: Todos los sprites, incluyendo el personaje "Kimu" y las animaciones de combate, fueron **creados desde cero** específicamente para este juego.
-- **Música y Efectos de Sonido**: La banda sonora y los efectos de audio son composiciones originales, diseñadas para sincronizarse perfectamente con la jugabilidad rítmica.
+Please read those documents before opening an issue or pull request. *Por favor revísalos antes de abrir issues o PRs.*
 
-*El uso de estos assets (imágenes y audio) está reservado exclusivamente para este proyecto, a menos que se otorgue permiso explícito.*
-
-## 🤝 Contribución
-
-¡Las contribuciones son bienvenidas! Si deseas mejorar el juego:
-
-1. Haz un **Fork** del repositorio.
-2. Crea una nueva rama para tu feature (`git checkout -b feature/AmazingFeature`).
-3. Realiza tus cambios y haz **Commit** (`git commit -m 'Add some AmazingFeature'`).
-4. Haz **Push** a la rama (`git push origin feature/AmazingFeature`).
-5. Abre un **Pull Request**.
-
-Por favor, asegúrate de que tu código siga el estilo existente (TypeScript, ESLint) y que las pruebas pasen.
-
-## 📄 Licencia
-
-El código fuente de este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
-
-> **Nota**: La licencia MIT aplica al código fuente. Los assets artísticos (música, sprites, imágenes) conservan su copyright original y no deben ser reutilizados sin permiso.
+## License / Licencia
+- 🇬🇧 **English:** Source code is released under the MIT License (see `LICENSE`). Game art, music, and audio remain proprietary unless you obtain explicit permission.  
+- 🇪🇸 **Español:** El código se publica bajo MIT (ver `LICENSE`). El arte, música y audio siguen siendo propietarios excepto con permiso explícito.
