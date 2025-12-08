@@ -33,7 +33,7 @@ class AuthService {
     // Registrar nuevo usuario
     public register(username: string, password: string): AuthResponse {
         const users = this.getUsers();
-        
+
         // Verificar si el usuario ya existe
         if (users.find(u => u.username === username)) {
             return {
@@ -59,7 +59,9 @@ class AuthService {
 
         return {
             success: true,
-            message: 'Cuenta creada exitosamente'
+            type: 'permanent',
+            message: 'Cuenta creada exitosamente',
+            user: newUser
         };
     }
 
@@ -88,6 +90,7 @@ class AuthService {
 
         return {
             success: true,
+            type: 'permanent',
             message: 'Sesión iniciada',
             user: user
         };
@@ -100,9 +103,10 @@ class AuthService {
             isGuest: true
         };
         sessionStorage.setItem('currentUser', 'guest');
-        
+
         return {
             success: true,
+            type: 'temporary',
             message: 'Jugando como invitado',
             user: this.currentUser
         };
@@ -114,11 +118,14 @@ class AuthService {
             // Guardado permanente para usuarios registrados
             const users = this.getUsers();
             const userIndex = users.findIndex(u => u.username === this.currentUser!.username);
-            
+
             if (userIndex !== -1) {
-                users[userIndex].progress = {
-                    ...gameData,
-                    lastSaved: new Date().toISOString()
+                users[userIndex] = {
+                    ...users[userIndex],
+                    progress: {
+                        ...gameData,
+                        lastSaved: new Date().toISOString()
+                    }
                 };
                 this.saveUsers(users);
                 return {
@@ -149,7 +156,7 @@ class AuthService {
             // Cargar progreso permanente
             const users = this.getUsers();
             const user = users.find(u => u.username === this.currentUser!.username);
-            
+
             if (user && user.progress) {
                 return {
                     success: true,
@@ -168,7 +175,7 @@ class AuthService {
                 };
             }
         }
-        
+
         return {
             success: false,
             message: 'No hay progreso guardado'

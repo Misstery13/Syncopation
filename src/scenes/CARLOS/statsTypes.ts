@@ -10,11 +10,13 @@
  * @property {number} totalPlayTimeMs - Tiempo total de juego en milisegundos.
  * @property {number} gamesPlayed - Número total de partidas jugadas por el jugador.
  */
+import { Score, TimeMs } from '../../types/index';
+
 export interface PlayerStats {
-    totalScore: number;
-    totalHits: number;
-    totalMisses: number;
-    perfectLevels: number;
-    totalPlayTimeMs: number;
-    gamesPlayed: number;
+    readonly totalScore: Score;
+    readonly totalHits: number;
+    readonly totalMisses: number;
+    readonly perfectLevels: number;
+    readonly totalPlayTimeMs: TimeMs;
+    readonly gamesPlayed: number;
 }

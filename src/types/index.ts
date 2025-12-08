@@ -1,14 +1,21 @@
 // Tipos globales para el juego Syncopation
 
+// Aliases para evitar "primitive obsession"
+export type TimeMs = number;
+export type Score = number;
+export type LevelId = number;
+export type UserId = string;
+export type Url = string;
+
 export interface GameConfig {
-  width: number;
-  height: number;
-  backgroundColor: string;
-  physics: {
-    default: string;
-    arcade: {
-      gravity: { x: number; y: number };
-      debug: boolean;
+  readonly width: number;
+  readonly height: number;
+  readonly backgroundColor: string;
+  readonly physics: {
+    readonly default: string;
+    readonly arcade: {
+      readonly gravity: { readonly x: number; readonly y: number };
+      readonly debug: boolean;
     };
   };
 }
@@ -22,88 +29,104 @@ export interface GameConfig {
 // }
 
 export interface InputState {
-  keys: { [key: string]: boolean };
-  mouse: {
-    x: number;
-    y: number;
-    pressed: boolean;
+  readonly keys: Readonly<Record<string, boolean>>;
+  readonly mouse: {
+    readonly x: number;
+    readonly y: number;
+    readonly pressed: boolean;
   };
 }
 
 export interface SaveData {
-  playerName: string;
-  score: number;
-  level: number;
-  timestamp: number;
+  readonly playerName: string;
+  readonly score: Score;
+  readonly level: LevelId;
+  readonly timestamp: TimeMs;
 }
 
 export interface LoginData {
-  username: string;
-  password: string;
+  readonly username: string;
+  readonly password: string;
 }
 
 export interface User {
-  id?: string;
-  username: string;
-  email?: string;
-  createdAt?: string;
-  password?: string;
-  isGuest?: boolean;
-  progress?: GameProgress;
+  readonly id?: UserId;
+  readonly username: string;
+  readonly email?: string;
+  readonly createdAt?: string;
+  readonly password?: string;
+  readonly isGuest?: boolean;
+  readonly progress?: GameProgress;
 }
 
 export interface GameProgress {
-  level: number;
-  score: number;
-  playerPosition?: { x: number; y: number };
-  inventory?: any[];
-  settings?: any;
-  lastSaved: string;
+  readonly level: LevelId;
+  readonly score: Score;
+  readonly playerPosition?: { readonly x: number; readonly y: number };
+  readonly inventory?: ReadonlyArray<unknown>;
+  readonly settings?: Readonly<Record<string, unknown>>;
+  readonly lastSaved: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  user?: User;
-  type?: 'permanent' | 'temporary';
-  data?: any;
-}
+// Respuesta de autenticación como unión discriminada
+export type AuthResponse =
+  | {
+    readonly success: true;
+    readonly type: 'permanent' | 'temporary';
+    readonly user: User;
+    readonly message?: string;
+    readonly data?: unknown;
+  }
+  | {
+    readonly success: false;
+    readonly message: string;
+    readonly type?: 'permanent' | 'temporary';
+    readonly data?: unknown;
+  };
 
-export interface SaveResponse {
-  success: boolean;
-  type?: 'permanent' | 'temporary';
-  message?: string;
-  data?: any;
-}
+export type SaveResponse =
+  | {
+    readonly success: true;
+    readonly type?: 'permanent' | 'temporary';
+    readonly message?: string;
+    readonly data?: unknown;
+  }
+  | {
+    readonly success: false;
+    readonly type?: 'permanent' | 'temporary';
+    readonly message: string;
+    readonly data?: unknown;
+  };
 
 // Tipos para eventos del juego
-export interface GameEvent {
-  type: string;
-  data?: any;
-  timestamp: number;
-}
+// Eventos del juego como ADT
+export type GameEvent =
+  | { readonly type: 'note-spawned'; readonly timestamp: TimeMs; readonly noteId: number }
+  | { readonly type: 'note-hit'; readonly timestamp: TimeMs; readonly noteId: number; readonly window: JudgementWindow['name']; readonly deltaMs: TimeMs }
+  | { readonly type: 'note-miss'; readonly timestamp: TimeMs; readonly noteId: number; readonly deltaMs: TimeMs }
+  | { readonly type: 'scene-change'; readonly timestamp: TimeMs; readonly scene: string }
+  | { readonly type: 'audio-start'; readonly timestamp: TimeMs }
+  | { readonly type: 'audio-stop'; readonly timestamp: TimeMs };
 
 // Tipos para el sistema de audio
 export interface AudioConfig {
-  volume: number;
-  muted: boolean;
-  musicVolume: number;
-  sfxVolume: number;
+  readonly volume: number;
+  readonly muted: boolean;
+  readonly musicVolume: number;
+  readonly sfxVolume: number;
 }
 
 // Tipos para el sistema de colisiones
 export interface CollisionBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
 }
 
-export interface CollisionResult {
-  collided: boolean;
-  direction?: 'top' | 'bottom' | 'left' | 'right';
-  overlap?: number;
-}
+export type CollisionResult =
+  | { readonly collided: false }
+  | { readonly collided: true; readonly direction: 'top' | 'bottom' | 'left' | 'right'; readonly overlap: number };
 
 /**
  * @description Es el momento exacto en que una nota debe ser golpeada
@@ -115,26 +138,23 @@ export interface CollisionResult {
 
 export interface Tempo {
   readonly id: number;
-  // El momento exacto en que la nota debe ser presionada
-  readonly timeMs: number;
-  // Ya no existe 'carril: number'
-  readonly judgementWindow: JudgementWindow['name']; // Ventana de juicio asociada a esta nota
+  readonly timeMs: TimeMs;
+  readonly judgementWindow: JudgementWindow['name'];
 }
 
 /**
  * @description Estado global del juego.
  */
 export interface GameState {
-  readonly score: number;
+  readonly score: Score;
   readonly precision: number;
-  readonly currentTimeMs: number; // El tiempo actual de la canción
+  readonly currentTimeMs: TimeMs; // El tiempo actual de la canción
   readonly currentScene: string;
   readonly isRunning: boolean;
   readonly isPaused: boolean;
   readonly isGameStoped: boolean;
-  readonly level: number;
+  readonly level: LevelId;
   readonly song: SongDefinition;
-
 }
 
 
@@ -146,34 +166,32 @@ export interface GameState {
  * @property {readonly Nota[]} notas - Array de notas que componen la canción
  */
 export interface SongDefinition {
-
   readonly idSong: string;
   readonly difficulty: 'easy' | 'normal' | 'hard';
-  readonly tempos: readonly Tempo[];
-  readonly audioUrl?: string;
-
+  readonly tempos: ReadonlyArray<Tempo>;
+  readonly audioUrl?: Url;
 }
 
 export interface JudgementWindow {
-  name: 'delay' | 'hit' | 'miss';
-  ms: number; // Tiempo en milisegundos para este juicio
-  score: number; // Puntos otorgados por este juicio
-  keepCombo: boolean; // Si este juicio mantiene el combo
+  readonly name: 'delay' | 'hit' | 'miss';
+  readonly ms: TimeMs; // Tiempo en milisegundos para este juicio
+  readonly score: Score; // Puntos otorgados por este juicio
+  readonly keepCombo: boolean; // Si este juicio mantiene el combo
 }
 
 export interface HitResult {
-  noteId: number;
-  deltaMs: number;
-  window: JudgementWindow['name'];
-  score: number;
+  readonly noteId: number;
+  readonly deltaMs: TimeMs;
+  readonly window: JudgementWindow['name'];
+  readonly score: Score;
 }
 
 /**
  * @description Estado del sistema rítmico del juego.
  */
 export interface RhythmState {
-  combo: number;
-  maxCombo: number;
-  score: number;
-  hits: Record<JudgementWindow['name'], number>;
+  readonly combo: number;
+  readonly maxCombo: number;
+  readonly score: Score;
+  readonly hits: Readonly<Record<JudgementWindow['name'], number>>;
 }
