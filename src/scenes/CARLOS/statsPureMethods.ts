@@ -11,7 +11,7 @@
  * A la cual se accede desde el menú principal, en la opcion "Estadísticas".
  */
 
-import { GameState } from '../../types/index';
+import { GameState, Score, TimeMs, Result, Ok, Err, Option, Some, None } from '../../types/index';
 import { PlayerStats } from './statsTypes';
 
 
@@ -22,11 +22,11 @@ import { PlayerStats } from './statsTypes';
  */
 export function initPlayerStats(): PlayerStats {
     return {
-        totalScore: 0,
+        totalScore: 0 as Score,
         totalHits: 0,
         totalMisses: 0,
         perfectLevels: 0,
-        totalPlayTimeMs: 0,
+        totalPlayTimeMs: 0 as TimeMs,
         gamesPlayed: 0,
     };
 }
@@ -34,10 +34,10 @@ export function initPlayerStats(): PlayerStats {
 /**
  * Suma puntos al total global.
  */
-export function addTotalScore(stats: PlayerStats, delta: number): PlayerStats {
+export function addTotalScore(stats: PlayerStats, delta: Score): PlayerStats {
     return {
         ...stats,
-        totalScore: Math.max(0, stats.totalScore + delta),
+        totalScore: Math.max(0, stats.totalScore + delta) as Score,
     };
 }
 
@@ -74,10 +74,10 @@ export function addPerfectLevel(stats: PlayerStats): PlayerStats {
 /**
  * Suma el tiempo total jugado (en milisegundos).
  */
-export function addPlayTime(stats: PlayerStats, timeMs: number): PlayerStats {
+export function addPlayTime(stats: PlayerStats, timeMs: TimeMs): PlayerStats {
     return {
         ...stats,
-        totalPlayTimeMs: Math.max(0, stats.totalPlayTimeMs + timeMs),
+        totalPlayTimeMs: Math.max(0, stats.totalPlayTimeMs + timeMs) as TimeMs,
     };
 }
 
@@ -105,7 +105,7 @@ export function updateStatsFromGame(
     updated = addPlayTime(updated, game.currentTimeMs);
 
     // Calcular precision usando la función dedicada
-    const computedPrecision = computePrecision(hitsCount, missesCount, typeof game.precision === 'number' ? game.precision : 0);
+    const computedPrecision = computePrecision(hitsCount, missesCount, game.precision);
 
     // Si la precision calculada es >= 100 (o el game.precision ya lo era), marcar nivel perfecto
     if (computedPrecision >= 100) updated = addPerfectLevel(updated);
@@ -126,4 +126,63 @@ export function computePrecision(hitsCount: number, missesCount: number, fallbac
     const total = hitsCount + missesCount;
     if (total <= 0) return Math.round(fallbackPrecision || 0);
     return Math.round((hitsCount / total) * 100);
+}
+
+// Variante funcional: devuelve Option en vez de usar fallback
+export function computePrecisionOpt(hitsCount: number, missesCount: number): Option<number> {
+    const total = hitsCount + missesCount;
+    if (total <= 0) return None;
+    return Some(Math.round((hitsCount / total) * 100));
+}
+
+// Actualización funcional: con validación y `Result`
+export function updateStatsFromGameResult(
+    stats: PlayerStats,
+    game: GameState,
+    hitsCount: number = 0,
+    missesCount: number = 0
+): Result<PlayerStats, 'invalid-input'> {
+    // Validaciones básicas (evitar counters negativos)
+    if (hitsCount < 0 || missesCount < 0) {
+        return Err('invalid-input');
+    }
+
+    // Calcular precision opcionalmente
+    const optPrecision = computePrecisionOpt(hitsCount, missesCount);
+    const computedPrecision = optPrecision.kind === 'some' ? optPrecision.value : game.precision;
+
+    let updated = addTotalScore(stats, game.score);
+    updated = addPlayTime(updated, game.currentTimeMs);
+
+    if (computedPrecision >= 100) updated = addPerfectLevel(updated);
+    if (hitsCount > 0) updated = addHits(updated, hitsCount);
+    if (missesCount > 0) updated = addMisses(updated, missesCount);
+
+    return Ok(incrementGamesPlayed(updated));
+}
+
+// Ejemplo de operación que puede fallar (cargar estadísticas previamente guardadas)
+// Mantiene transparencia referencial: no toca IO aquí; el IO debe proveer datos.
+export function parseStoredStats(json: unknown): Result<PlayerStats, string> {
+    if (typeof json !== 'string') return Err('Input no es string JSON');
+    try {
+        const data = JSON.parse(json);
+        const candidate: PlayerStats = {
+            totalScore: Number(data?.totalScore) as Score,
+            totalHits: Number(data?.totalHits) || 0,
+            totalMisses: Number(data?.totalMisses) || 0,
+            perfectLevels: Number(data?.perfectLevels) || 0,
+            totalPlayTimeMs: Number(data?.totalPlayTimeMs) as TimeMs,
+            gamesPlayed: Number(data?.gamesPlayed) || 0,
+        };
+        if (
+            Number.isNaN(candidate.totalScore) ||
+            Number.isNaN(candidate.totalPlayTimeMs)
+        ) {
+            return Err('Datos inválidos en estadísticas');
+        }
+        return Ok(candidate);
+    } catch {
+        return Err('JSON inválido');
+    }
 }

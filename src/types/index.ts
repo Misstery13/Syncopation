@@ -7,6 +7,15 @@ export type LevelId = number;
 export type UserId = string;
 export type Url = string;
 
+// Tipos funcionales para manejo de errores sin try/catch
+export type Option<T> = { readonly kind: 'some'; readonly value: T } | { readonly kind: 'none' };
+export type Result<Ok, Err> = { readonly ok: true; readonly value: Ok } | { readonly ok: false; readonly error: Err };
+
+export const None: Option<never> = { kind: 'none' } as const;
+export const Some = <T>(value: T): Option<T> => ({ kind: 'some', value });
+export const Ok = <Ok>(value: Ok): Result<Ok, never> => ({ ok: true, value });
+export const Err = <Err>(error: Err): Result<never, Err> => ({ ok: false, error });
+
 export interface GameConfig {
   readonly width: number;
   readonly height: number;

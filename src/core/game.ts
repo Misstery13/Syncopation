@@ -64,8 +64,12 @@ export class Game {
         // Ajustar tamaño del canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => {
-            this.config.width = window.innerWidth;
-            this.config.height = window.innerHeight;
+            // Crear un nuevo objeto de configuración en lugar de mutar propiedades readonly
+            this.config = {
+                ...this.config,
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
             this.resizeCanvas();
         });
     }

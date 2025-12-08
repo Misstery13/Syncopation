@@ -2,7 +2,7 @@ console.log('gameplayController module executing...');
 import { FullGameState } from './gameplayTypes';
 import { beatMapLevel1 } from './beatMaps';
 import { SongDefinition, Tempo } from '../../types/index';
-import { tick, processPlayerInput, initializeFullGame, evaluateHit, setFullGameStoped } from '../../core/rhythmCore';
+import { tick, processPlayerInputResult, initializeFullGame, evaluateHit, setFullGameStoped } from '../../core/rhythmCore';
 import { spawnThrowable, handleThrowableReaction, playCharacterAnimation } from '../../core/phaserBridge';
 import { updateStatsFromGame } from './statsPureMethods';
 import { setPlayerStats, loadPlayerStats } from './statsController';
@@ -188,10 +188,11 @@ function handleInput(event: MouseEvent | KeyboardEvent | TouchEvent) {
         }
     }
 
-    // Procesamos el input en el estado puro
-    const nuevoEstado = processPlayerInput(estadoActual, pressTimeGame);
+    // Procesamos el input con variante funcional (Result)
+    const resultado = processPlayerInputResult(estadoActual, pressTimeGame);
 
-    if (nuevoEstado !== estadoActual) {
+    if (resultado.ok) {
+        const nuevoEstado = resultado.value;
         // Feedback Visual / Auditivo
         const rawTargetTime = bestCandidate ? bestCandidate.timeMs : pressTimeGame;
         const targetTimeWithOffset = rawTargetTime + HIT_OFFSET_MS;
@@ -215,6 +216,11 @@ function handleInput(event: MouseEvent | KeyboardEvent | TouchEvent) {
 
         estadoActual = nuevoEstado;
         updateVisuals(estadoActual);
+    } else {
+        // Opcional: manejar razones de fallo
+        // 'no-target' | 'out-of-tolerance' | 'after-miss-window'
+        // Por ahora, sólo registramos para diagnóstico sin afectar visuales.
+        console.debug('Input descartado:', resultado.error);
     }
 }
 
